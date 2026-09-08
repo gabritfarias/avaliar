@@ -1,6 +1,7 @@
 import { Model, GradeSettings, CalculationBreakdown, Evaluation, Variant, Part } from '../types';
 
-const API_BASE = '/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = API_URL.endsWith('/api') ? API_URL : `${API_URL.replace(/\/$/, '')}/api`;
 
 export async function fetchModels(): Promise<Model[]> {
   const res = await fetch(`${API_BASE}/models`);
