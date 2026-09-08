@@ -45,9 +45,12 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
         </div>
 
         {/* Mobile Sticky Placeholder Bar */}
-        <div className="lg:hidden fixed bottom-14 left-0 right-0 z-30 bg-slate-900 text-white px-4 py-2.5 shadow-xl border-t border-slate-800 flex items-center justify-between">
+        <div
+          style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))' }}
+          className="lg:hidden fixed left-0 right-0 z-30 bg-slate-900/95 backdrop-blur-md text-white px-4 py-3 shadow-xl border-t border-slate-800 flex items-center justify-between"
+        >
           <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Calculator className="w-4 h-4 text-emerald-400" />
+            <Calculator className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>Selecione modelo e capacidade</span>
           </div>
           <span className="text-xs font-semibold text-slate-500">R$ --</span>
@@ -191,31 +194,34 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. MOBILE VIEW: Sticky Bottom Bar (Fixo na parte inferior)                 */}
+      {/* 2. MOBILE VIEW: Sticky Bottom Bar (Fixo na parte inferior acima da Tab Bar)*/}
       {/* ========================================================================= */}
-      <div className="lg:hidden fixed bottom-14 left-0 right-0 z-30 bg-slate-900/98 backdrop-blur-md text-white border-t border-slate-700 shadow-2xl px-3 py-2">
-        <div className="max-w-md mx-auto flex items-center justify-between gap-2">
+      <div
+        style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))' }}
+        className="lg:hidden fixed left-0 right-0 z-30 bg-slate-900/98 backdrop-blur-md text-white border-t border-slate-700 shadow-2xl px-3.5 py-2.5"
+      >
+        <div className="max-w-md mx-auto flex items-center justify-between gap-3">
           {/* Informações do Valor e Toque para Expandir */}
           <div
             onClick={() => setIsDrawerOpen(true)}
-            className="flex-1 cursor-pointer select-none py-0.5 active:opacity-80"
+            className="flex-1 cursor-pointer select-none py-0.5 active:opacity-80 min-w-0"
           >
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 leading-none">
                 Pagar ao Cliente
               </span>
-              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-1.5 py-0.2 rounded border border-emerald-500/30">
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-500/30 leading-none">
                 <ChevronUp className="w-3 h-3" /> Memória
               </span>
             </div>
 
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl font-black text-emerald-400 leading-tight">
-                {formatCurrency(calculation.finalValue)}
-              </span>
-              <span className="text-[10px] text-slate-400 truncate max-w-[120px]">
-                {calculation.modelName} • Gr. {calculation.effectiveGrade}
-              </span>
+            <div className="text-xl sm:text-2xl font-black text-emerald-400 leading-none tracking-tight">
+              {formatCurrency(calculation.finalValue)}
+            </div>
+
+            <div className="text-[11px] font-medium text-slate-300 leading-tight truncate mt-1">
+              {calculation.modelName} · Gr. {calculation.effectiveGrade}
+              {calculation.forcedGradeC ? ' (Peça trocada)' : ''}
             </div>
           </div>
 
@@ -223,7 +229,7 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
           <button
             onClick={onSave}
             disabled={!canSave || isSaving || loading}
-            className="min-h-[44px] px-4 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-extrabold text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+            className="min-h-[48px] px-4 py-2 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
           >
             {isSaving ? (
               <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>

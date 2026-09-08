@@ -40,7 +40,7 @@ export function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-800">
+    <div className="min-h-[100dvh] bg-slate-100 flex flex-col font-sans text-slate-800">
       {/* Navbar Superior */}
       <Header
         activeTab={activeTab}

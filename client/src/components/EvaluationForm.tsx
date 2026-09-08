@@ -205,7 +205,10 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 pb-36 lg:pb-12">
+    <div
+      style={{ paddingBottom: 'calc(11.5rem + env(safe-area-inset-bottom, 0px))' }}
+      className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 lg:!pb-12"
+    >
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-16 sm:top-auto sm:bottom-20 right-3 left-3 sm:left-auto sm:right-5 z-50 bg-slate-900 text-emerald-400 border border-emerald-500/40 px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4 sm:slide-in-from-bottom-5">

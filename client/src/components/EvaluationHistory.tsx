@@ -66,7 +66,10 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 pb-32 sm:pb-12 space-y-4 sm:space-y-6">
+    <div
+      style={{ paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))' }}
+      className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 sm:!pb-12 space-y-4 sm:space-y-6"
+    >
       {/* Modal de Recibo */}
       <ReceiptModal
         evaluation={selectedEvaluation}
