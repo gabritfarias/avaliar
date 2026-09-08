@@ -198,16 +198,16 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
       {/* ========================================================================= */}
       <div
         style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))' }}
-        className="lg:hidden fixed left-0 right-0 z-30 bg-slate-900/98 backdrop-blur-md text-white border-t border-slate-700 shadow-2xl px-3.5 py-2.5"
+        className="lg:hidden fixed left-0 right-0 z-30 bg-slate-900/98 backdrop-blur-md text-white border-t border-slate-700/80 shadow-2xl px-4 py-3.5 sm:py-4"
       >
         <div className="max-w-md mx-auto flex items-center justify-between gap-3">
           {/* Informações do Valor e Toque para Expandir */}
           <div
             onClick={() => setIsDrawerOpen(true)}
-            className="flex-1 cursor-pointer select-none py-0.5 active:opacity-80 min-w-0"
+            className="flex-1 cursor-pointer select-none active:opacity-80 min-w-0"
           >
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 leading-none">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 leading-snug">
                 Pagar ao Cliente
               </span>
               <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-500/30 leading-none">
@@ -215,11 +215,11 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
               </span>
             </div>
 
-            <div className="text-xl sm:text-2xl font-black text-emerald-400 leading-none tracking-tight">
+            <div className="text-xl sm:text-2xl font-black text-emerald-400 leading-snug tracking-tight my-0.5">
               {formatCurrency(calculation.finalValue)}
             </div>
 
-            <div className="text-[11px] font-medium text-slate-300 leading-tight truncate mt-1">
+            <div className="text-[11px] sm:text-xs font-medium text-slate-300 leading-snug whitespace-normal break-words mt-0.5">
               {calculation.modelName} · Gr. {calculation.effectiveGrade}
               {calculation.forcedGradeC ? ' (Peça trocada)' : ''}
             </div>
@@ -229,7 +229,7 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
           <button
             onClick={onSave}
             disabled={!canSave || isSaving || loading}
-            className="min-h-[48px] px-4 py-2 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+            className="min-h-[48px] px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
           >
             {isSaving ? (
               <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
@@ -250,7 +250,10 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
           <div className="flex-1" onClick={() => setIsDrawerOpen(false)} />
 
           {/* Drawer Content */}
-          <div className="bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto border-t border-slate-200 animate-slide-up pb-safe">
+          <div
+            style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+            className="bg-white rounded-t-3xl shadow-2xl max-h-[85dvh] overflow-y-auto border-t border-slate-200 animate-slide-up"
+          >
             {/* Grab Handle */}
             <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto my-3" />
 

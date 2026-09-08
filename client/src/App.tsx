@@ -55,7 +55,7 @@ export function App() {
       {/* Main Content Area */}
       <main className="flex-1">
         {loading ? (
-          <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <div className="flex flex-col items-center justify-center min-h-[60dvh]">
             <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
             <p className="mt-4 text-sm font-semibold text-slate-600">
               Carregando catálogo de iPhones e configurações...

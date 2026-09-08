@@ -91,7 +91,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, evaluat
       {/* Bottom Navigation Bar Fixa para Mobile (Estilo App Nativo iOS/Android) */}
       <nav
         aria-label="Navegação mobile"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 pb-safe shadow-2xl"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-900/98 backdrop-blur-md border-t border-slate-800 shadow-2xl"
       >
         <div className="grid grid-cols-3 h-14">
           <button
