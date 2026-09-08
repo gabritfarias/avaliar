@@ -1,0 +1,646 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { Model, Variant, CalculationBreakdown, GradeSettings, Evaluation } from '../types';
+import { calculateEvaluation, saveEvaluation } from '../services/api';
+import { CalculationSummary } from './CalculationSummary';
+import { ReceiptModal } from './ReceiptModal';
+import {
+  Smartphone,
+  HardDrive,
+  AlertTriangle,
+  Award,
+  Wrench,
+  User,
+  FileText,
+  Lock,
+  Check,
+  CheckCircle2,
+  RefreshCw,
+  Search,
+} from 'lucide-react';
+
+interface EvaluationFormProps {
+  models: Model[];
+  settings: GradeSettings;
+  onEvaluationSaved: () => void;
+}
+
+export const EvaluationForm: React.FC<EvaluationFormProps> = ({
+  models,
+  settings,
+  onEvaluationSaved,
+}) => {
+  // Selection states
+  const [selectedSeries, setSelectedSeries] = useState<string>('all');
+  const [selectedModelId, setSelectedModelId] = useState<number | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
+  const [hasReplacedPart, setHasReplacedPart] = useState<boolean>(false);
+  const [grade, setGrade] = useState<'A' | 'B' | 'C'>('A');
+  const [selectedPartIds, setSelectedPartIds] = useState<number[]>([]);
+  const [customerName, setCustomerName] = useState<string>('');
+  const [notes, setNotes] = useState<string>('');
+
+  // Calculation & saving states
+  const [calculation, setCalculation] = useState<CalculationBreakdown | null>(null);
+  const [isCalculating, setIsCalculating] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [savedEvaluation, setSavedEvaluation] = useState<Evaluation | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Model search / filter
+  const [searchModel, setSearchModel] = useState<string>('');
+
+  // Selected Model object
+  const selectedModel = useMemo(() => {
+    return models.find((m) => m.id === selectedModelId) || null;
+  }, [models, selectedModelId]);
+
+  // Selected Variant object
+  const selectedVariant = useMemo(() => {
+    if (!selectedModel || !selectedVariantId) return null;
+    return selectedModel.variants.find((v) => v.id === selectedVariantId) || null;
+  }, [selectedModel, selectedVariantId]);
+
+  // Filter models by series and search text
+  const filteredModels = useMemo(() => {
+    return models.filter((m) => {
+      const matchesSearch = m.name.toLowerCase().includes(searchModel.toLowerCase());
+      if (!matchesSearch) return false;
+
+      if (selectedSeries === 'all') return true;
+      if (selectedSeries === '12') return m.name.includes('12');
+      if (selectedSeries === '13') return m.name.includes('13');
+      if (selectedSeries === '14') return m.name.includes('14');
+      if (selectedSeries === '15') return m.name.includes('15');
+      if (selectedSeries === '16') return m.name.includes('16');
+      return true;
+    });
+  }, [models, selectedSeries, searchModel]);
+
+  // Initial selection: select first model when models load if none selected
+  useEffect(() => {
+    if (models.length > 0 && !selectedModelId) {
+      const defaultModel = models[0];
+      setSelectedModelId(defaultModel.id);
+      if (defaultModel.variants.length > 0) {
+        setSelectedVariantId(defaultModel.variants[0].id);
+      }
+    }
+  }, [models, selectedModelId]);
+
+  // When model changes, automatically select its first variant and reset parts
+  const handleModelSelect = (model: Model) => {
+    setSelectedModelId(model.id);
+    setSelectedPartIds([]);
+    if (model.variants.length > 0) {
+      setSelectedVariantId(model.variants[0].id);
+    } else {
+      setSelectedVariantId(null);
+    }
+  };
+
+  // When replaced part flag changes: if true, automatically force grade C
+  const handleReplacedPartToggle = (checked: boolean) => {
+    setHasReplacedPart(checked);
+    if (checked) {
+      setGrade('C');
+    }
+  };
+
+  // Toggle parts checklist
+  const handlePartToggle = (partId: number) => {
+    setSelectedPartIds((prev) =>
+      prev.includes(partId) ? prev.filter((id) => id !== partId) : [...prev, partId]
+    );
+  };
+
+  // Recalculate whenever inputs change
+  useEffect(() => {
+    if (!selectedVariantId) {
+      setCalculation(null);
+      return;
+    }
+
+    let isMounted = true;
+    setIsCalculating(true);
+
+    calculateEvaluation({
+      variantId: selectedVariantId,
+      grade: hasReplacedPart ? 'C' : grade,
+      hasReplacedPart,
+      partIds: selectedPartIds,
+    })
+      .then((data) => {
+        if (isMounted) {
+          setCalculation(data);
+          setIsCalculating(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Calculation error:', err);
+        if (isMounted) setIsCalculating(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedVariantId, grade, hasReplacedPart, selectedPartIds]);
+
+  // Save evaluation to database
+  const handleSaveEvaluation = async () => {
+    if (!selectedVariantId) return;
+
+    try {
+      setIsSaving(true);
+      const res = await saveEvaluation({
+        variantId: selectedVariantId,
+        grade: hasReplacedPart ? 'C' : grade,
+        hasReplacedPart,
+        partIds: selectedPartIds,
+        customerName: customerName.trim() || undefined,
+        notes: notes.trim() || undefined,
+      });
+
+      setSavedEvaluation(res.evaluation);
+      setToastMessage('Avaliação gravada com sucesso no banco de dados!');
+      onEvaluationSaved();
+
+      // Clear customer form fields
+      setCustomerName('');
+      setNotes('');
+      setSelectedPartIds([]);
+      setHasReplacedPart(false);
+      setGrade('A');
+    } catch (error: any) {
+      alert(error.message || 'Erro ao salvar avaliação');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const formatCurrency = (val: number) => {
+    return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 pb-36 lg:pb-12">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-16 sm:top-auto sm:bottom-20 right-3 left-3 sm:left-auto sm:right-5 z-50 bg-slate-900 text-emerald-400 border border-emerald-500/40 px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4 sm:slide-in-from-bottom-5">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-white">{toastMessage}</span>
+          </div>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Recibo Modal pós-gravação */}
+      <ReceiptModal evaluation={savedEvaluation} onClose={() => setSavedEvaluation(null)} />
+
+      {/* Main Grid Layout: Form on Left, Sticky Summary on Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        {/* Left Column: Form Steps (8 cols on desktop, full width on mobile) */}
+        <div className="lg:col-span-8 space-y-4 sm:space-y-6">
+          {/* Passo 1: Seleção de Modelo */}
+          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold shrink-0">
+                    1
+                  </span>
+                  Modelo do iPhone
+                </h3>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                  20 modelos disponíveis (iPhone 12 ao 16 Pro Max)
+                </p>
+              </div>
+
+              {/* Filtro por Família (Pills horizontais com rolagem suave e min 44px) */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+                {[
+                  { id: 'all', label: 'Todos' },
+                  { id: '12', label: 'Linha 12' },
+                  { id: '13', label: 'Linha 13' },
+                  { id: '14', label: 'Linha 14' },
+                  { id: '15', label: 'Linha 15' },
+                  { id: '16', label: 'Linha 16' },
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setSelectedSeries(s.id)}
+                    className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer select-none active:scale-95 ${
+                      selectedSeries === s.id
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dropdown nativo no mobile para seleção instantânea se preferir */}
+            <div className="block sm:hidden mb-3">
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                Seletor Rápido
+              </label>
+              <select
+                value={selectedModelId || ''}
+                onChange={(e) => {
+                  const m = models.find((mod) => mod.id === Number(e.target.value));
+                  if (m) handleModelSelect(m);
+                }}
+                className="w-full min-h-[48px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-base font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/20"
+              >
+                {filteredModels.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} ({m.variants.length} capacidades)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Campo de Busca Rápida */}
+            <div className="relative mb-3">
+              <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+              <input
+                type="text"
+                value={searchModel}
+                onChange={(e) => setSearchModel(e.target.value)}
+                placeholder="Buscar modelo (ex: 15 Pro, 13 mini)..."
+                className="w-full min-h-[44px] pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+              />
+              {searchModel && (
+                <button
+                  onClick={() => setSearchModel('')}
+                  className="w-8 h-8 absolute right-1 top-1.5 flex items-center justify-center text-xs text-slate-400 hover:text-slate-600"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Grid de Modelos Touch Friendly */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5 max-h-56 overflow-y-auto p-0.5">
+              {filteredModels.map((model) => {
+                const isSelected = model.id === selectedModelId;
+                return (
+                  <button
+                    key={model.id}
+                    onClick={() => handleModelSelect(model)}
+                    className={`min-h-[56px] p-3 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between active:scale-[0.98] select-none ${
+                      isSelected
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-emerald-500/50'
+                        : 'bg-slate-50 text-slate-800 border-slate-200 hover:border-slate-300 active:bg-slate-100'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-bold text-xs sm:text-sm leading-tight">{model.name}</span>
+                      {isSelected && <Check className="w-4 h-4 text-emerald-400 shrink-0" />}
+                    </div>
+                    <span
+                      className={`text-[10px] mt-1.5 block font-medium ${
+                        isSelected ? 'text-slate-300' : 'text-slate-500'
+                      }`}
+                    >
+                      {model.variants.length} opções
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Passo 2: Seleção de Capacidade */}
+          {selectedModel && (
+            <section className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-6 animate-in fade-in duration-150">
+              <div className="mb-3">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold shrink-0">
+                    2
+                  </span>
+                  Capacidade de Armazenamento
+                </h3>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                  Preços base calculados para {selectedModel.name}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {selectedModel.variants.map((v) => {
+                  const isSelected = v.id === selectedVariantId;
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={() => setSelectedVariantId(v.id)}
+                      className={`min-h-[56px] p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center active:scale-[0.98] select-none ${
+                        isSelected
+                          ? 'border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500/30 text-slate-900 font-bold shadow-xs'
+                          : 'border-slate-200 bg-white hover:border-slate-300 active:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1">
+                        <HardDrive
+                          className={`w-4 h-4 ${isSelected ? 'text-emerald-600' : 'text-slate-400'}`}
+                        />
+                        <span className="font-extrabold text-sm sm:text-base">{v.capacity}</span>
+                      </div>
+                      <span className="text-[11px] font-semibold text-emerald-700 mt-0.5">
+                        Base: {formatCurrency(v.priceGradeA)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Passo 3: Mensagem de Peça Trocada (Regra de Negócio Crucial) */}
+          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-6">
+            <div className="mb-3">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold shrink-0">
+                  3
+                </span>
+                Verificação de Peça Não Original
+              </h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                Verifique em "Ajustes &gt; Geral &gt; Sobre" no iPhone
+              </p>
+            </div>
+
+            {/* Checkbox em Destaque Touch Friendly */}
+            <label
+              className={`flex items-start gap-3 p-3.5 sm:p-4 rounded-xl border-2 transition-all cursor-pointer select-none active:scale-[0.99] min-h-[56px] ${
+                hasReplacedPart
+                  ? 'border-amber-500 bg-amber-50/70 shadow-xs'
+                  : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={hasReplacedPart}
+                onChange={(e) => handleReplacedPartToggle(e.target.checked)}
+                className="mt-0.5 w-5 h-5 text-amber-600 rounded border-slate-300 focus:ring-amber-500 shrink-0 cursor-pointer"
+              />
+              <div className="flex-1">
+                <span className="font-bold text-slate-900 text-xs sm:text-sm block leading-tight">
+                  Aparelho já possui mensagem de peça trocada / peça não original
+                </span>
+                <span className="text-[11px] sm:text-xs text-slate-600 mt-1 block leading-relaxed">
+                  Classifica automaticamente como <strong>Grade C</strong> e trava a seleção abaixo.
+                </span>
+              </div>
+            </label>
+
+            {hasReplacedPart && (
+              <div className="mt-2.5 flex items-center gap-2 bg-amber-500/10 text-amber-900 border border-amber-500/30 p-2.5 sm:p-3 rounded-xl text-xs font-medium animate-in fade-in">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>
+                  <strong>Grade C aplicada automaticamente:</strong> A seleção de grade foi travada em C.
+                </span>
+              </div>
+            )}
+          </section>
+
+          {/* Passo 4: Grade de Conservação */}
+          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold shrink-0">
+                    4
+                  </span>
+                  Grade de Conservação
+                </h3>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                  Estado estético e integridade do aparelho
+                </p>
+              </div>
+
+              {hasReplacedPart && (
+                <span className="flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md">
+                  <Lock className="w-3 h-3" /> Travado em C
+                </span>
+              )}
+            </div>
+
+            {/* Cards de Seleção de Grade Touch-friendly */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {/* Grade A */}
+              <button
+                type="button"
+                disabled={hasReplacedPart}
+                onClick={() => setGrade('A')}
+                className={`min-h-[64px] p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between active:scale-[0.98] select-none ${
+                  hasReplacedPart
+                    ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-200'
+                    : grade === 'A'
+                    ? 'border-emerald-500 bg-emerald-50/50 ring-2 ring-emerald-500/30 shadow-xs'
+                    : 'border-slate-200 hover:border-slate-300 bg-white cursor-pointer active:bg-slate-50'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-sm sm:text-base text-slate-900">Grade A</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      Preço Cheio
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                    Sem marcas relevantes e bateria saudável (&gt; 85%).
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-100 text-[11px] font-bold text-emerald-700">
+                  Sem desconto (Valor Base)
+                </div>
+              </button>
+
+              {/* Grade B */}
+              <button
+                type="button"
+                disabled={hasReplacedPart}
+                onClick={() => setGrade('B')}
+                className={`min-h-[64px] p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between active:scale-[0.98] select-none ${
+                  hasReplacedPart
+                    ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-200'
+                    : grade === 'B'
+                    ? 'border-blue-500 bg-blue-50/50 ring-2 ring-blue-500/30 shadow-xs'
+                    : 'border-slate-200 hover:border-slate-300 bg-white cursor-pointer active:bg-slate-50'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-sm sm:text-base text-slate-900">Grade B</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                      - R$ {settings.discountB.toFixed(0)}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                    Marcas de uso leves e/ou bateria com 85% ou menos.
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-100 text-[11px] font-bold text-blue-700">
+                  Desconto: - {formatCurrency(settings.discountB)}
+                </div>
+              </button>
+
+              {/* Grade C */}
+              <button
+                type="button"
+                onClick={() => setGrade('C')}
+                className={`min-h-[64px] p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between active:scale-[0.98] cursor-pointer select-none ${
+                  grade === 'C'
+                    ? 'border-amber-500 bg-amber-50/60 ring-2 ring-amber-500/30 shadow-xs'
+                    : 'border-slate-200 hover:border-slate-300 bg-white active:bg-slate-50'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-sm sm:text-base text-slate-900 flex items-center gap-1">
+                      Grade C
+                      {hasReplacedPart && <Lock className="w-3.5 h-3.5 text-amber-600" />}
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                      - R$ {settings.discountC.toFixed(0)}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                    Muitas marcas ou peça(s) não originais trocadas.
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-100 text-[11px] font-bold text-amber-800">
+                  Desconto: - {formatCurrency(settings.discountC)}
+                </div>
+              </button>
+            </div>
+          </section>
+
+          {/* Passo 5: Abatimento por Troca de Peças */}
+          {selectedModel && (
+            <section className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold shrink-0">
+                      5
+                    </span>
+                    Peças a Substituir
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                    Marque peças que a loja precisará reparar
+                  </p>
+                </div>
+
+                {selectedPartIds.length > 0 && (
+                  <button
+                    onClick={() => setSelectedPartIds([])}
+                    className="min-h-[36px] px-2 text-xs text-slate-600 hover:text-slate-900 font-bold underline cursor-pointer"
+                  >
+                    Desmarcar
+                  </button>
+                )}
+              </div>
+
+              {selectedModel.parts.length === 0 ? (
+                <p className="text-xs text-slate-400">Nenhuma peça cadastrada para este modelo.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {selectedModel.parts.map((part) => {
+                    const isChecked = selectedPartIds.includes(part.id);
+                    return (
+                      <label
+                        key={part.id}
+                        className={`min-h-[50px] flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none active:scale-[0.99] ${
+                          isChecked
+                            ? 'border-red-400 bg-red-50/60 shadow-xs'
+                            : 'border-slate-200 hover:border-slate-300 bg-white active:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handlePartToggle(part.id)}
+                            className="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500 cursor-pointer"
+                          />
+                          <span className="text-xs sm:text-sm font-semibold text-slate-800">
+                            {part.name}
+                          </span>
+                        </div>
+                        <span
+                          className={`text-xs font-bold px-2 py-0.5 rounded-md ${
+                            isChecked ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          - {formatCurrency(part.cost)}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Passo 6: Dados Opcionais do Cliente */}
+          <section className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-6">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2 mb-3">
+              <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold shrink-0">
+                6
+              </span>
+              Dados do Atendimento (Opcional)
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+                  <User className="w-3.5 h-3.5 text-slate-400" /> Nome do Cliente
+                </label>
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Ex: João da Silva"
+                  className="w-full min-h-[44px] px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+                  <FileText className="w-3.5 h-3.5 text-slate-400" /> Observações do Balcão
+                </label>
+                <input
+                  type="text"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Ex: Aparelho impecável com caixa"
+                  className="w-full min-h-[44px] px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Right Column: Sticky Real-time Calculation Summary (4 cols desktop, bottom bar on mobile) */}
+        <div className="lg:col-span-4">
+          <CalculationSummary
+            calculation={calculation}
+            loading={isCalculating}
+            onSave={handleSaveEvaluation}
+            isSaving={isSaving}
+            canSave={Boolean(selectedVariantId && calculation)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+

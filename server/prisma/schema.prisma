@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Model {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  order     Int       @default(0)
+  variants  Variant[]
+  parts     Part[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Variant {
+  id          Int          @id @default(autoincrement())
+  modelId     Int
+  model       Model        @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  capacity    String
+  priceGradeA Float
+  evaluations Evaluation[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([modelId, capacity])
+}
+
+model GradeSetting {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       Float
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+model Part {
+  id        Int      @id @default(autoincrement())
+  modelId   Int
+  model     Model    @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  name      String
+  cost      Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([modelId, name])
+}
+
+model Evaluation {
+  id                  Int              @id @default(autoincrement())
+  variantId           Int
+  variant             Variant          @relation(fields: [variantId], references: [id])
+  grade               String
+  hasReplacedPart     Boolean          @default(false)
+  basePriceGradeA     Float
+  gradeDiscount       Float
+  totalPartsDeduction Float
+  finalValue          Float
+  customerName        String?
+  notes               String?
+  createdAt           DateTime         @default(now())
+  parts               EvaluationPart[]
+}
+
+model EvaluationPart {
+  id           Int        @id @default(autoincrement())
+  evaluationId Int
+  evaluation   Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  partId       Int?
+  partName     String
+  cost         Float
+}
+
