@@ -5,6 +5,7 @@ import { Header } from './components/Header';
 import { EvaluationForm } from './components/EvaluationForm';
 import { AdminPricing } from './components/AdminPricing';
 import { EvaluationHistory } from './components/EvaluationHistory';
+import { UpdatePrompt } from './components/UpdatePrompt';
 import { Smartphone, Database, RefreshCw, AlertCircle } from 'lucide-react';
 
 export function App() {
@@ -41,6 +42,9 @@ export function App() {
 
   return (
     <div className="min-h-[100dvh] bg-slate-100 flex flex-col font-sans text-slate-800">
+      {/* Notificação de Nova Versão (PWA / Cache) */}
+      <UpdatePrompt />
+
       {/* Navbar Superior */}
       <Header
         activeTab={activeTab}
