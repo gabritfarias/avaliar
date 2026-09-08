@@ -8,6 +8,35 @@ export async function fetchModels(): Promise<Model[]> {
   return res.json();
 }
 
+export async function createModel(data: {
+  name: string;
+  order?: number;
+  variants?: Array<{ capacity: string; priceGradeA: number }>;
+  createDefaultParts?: boolean;
+}): Promise<Model> {
+  const res = await fetch(`${API_BASE}/models`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Erro ao criar modelo');
+  }
+  return res.json();
+}
+
+export async function deleteModel(id: number): Promise<{ message: string; deletedId: number }> {
+  const res = await fetch(`${API_BASE}/models/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Erro ao excluir modelo');
+  }
+  return res.json();
+}
+
 export async function fetchGradeSettings(): Promise<GradeSettings> {
   const res = await fetch(`${API_BASE}/settings`);
   if (!res.ok) throw new Error('Falha ao carregar configurações de grade');

@@ -47,6 +47,8 @@ router.post('/', async (req, res) => {
         const evaluation = await prisma_1.prisma.evaluation.create({
             data: {
                 variantId: breakdown.variantId,
+                modelName: breakdown.modelName,
+                capacityName: breakdown.capacity,
                 grade: breakdown.effectiveGrade,
                 hasReplacedPart: breakdown.hasReplacedPart,
                 basePriceGradeA: breakdown.basePriceGradeA,

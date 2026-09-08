@@ -55,8 +55,10 @@ model Part {
 
 model Evaluation {
   id                  Int              @id @default(autoincrement())
-  variantId           Int
-  variant             Variant          @relation(fields: [variantId], references: [id])
+  variantId           Int?
+  variant             Variant?         @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  modelName           String?
+  capacityName        String?
   grade               String
   hasReplacedPart     Boolean          @default(false)
   basePriceGradeA     Float

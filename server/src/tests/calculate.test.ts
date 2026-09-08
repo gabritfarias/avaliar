@@ -120,6 +120,94 @@ async function runTests() {
     await prisma.evaluation.delete({ where: { id: savedEval.id } });
     console.log('🧹 Avaliação temporária de teste removida.');
 
+    // Teste 7: Gestão Completa de Modelos (Criar, Avaliar, Excluir em cascata e Preservar Histórico)
+    console.log('\n--- Teste 7: Inclusão e Exclusão de Modelo com Sincronização de Peças e Histórico ---');
+    
+    // Limpeza prévia se existir resíduo de teste anterior
+    await prisma.model.deleteMany({ where: { name: 'iPhone Teste Especial' } });
+
+    // 7.1 Criação do modelo com capacidades e peças padrão
+    const createdModel = await prisma.model.create({
+      data: {
+        name: 'iPhone Teste Especial',
+        order: 999,
+        variants: {
+          create: [
+            { capacity: '128GB', priceGradeA: 2000 },
+            { capacity: '256GB', priceGradeA: 2400 },
+          ],
+        },
+        parts: {
+          create: [
+            { name: 'Bateria', cost: 250 },
+            { name: 'Tela / Display', cost: 600 },
+            { name: 'Câmera Traseira', cost: 350 },
+            { name: 'Conector de Carga', cost: 180 },
+            { name: 'Tampa Traseira (Vidro)', cost: 200 },
+            { name: 'Face ID / Câmera Frontal', cost: 250 },
+          ],
+        },
+      },
+      include: { variants: true, parts: true },
+    });
+
+    assert(createdModel.id > 0, 'Novo modelo deve ter sido criado com ID válido');
+    assert(createdModel.variants.length === 2, 'Novo modelo deve possuir as 2 capacidades cadastradas');
+    assert(createdModel.parts.length === 6, 'Novo modelo deve ter as 6 peças padrão autogeradas');
+
+    const testVariant = createdModel.variants[0];
+
+    // 7.2 Salvar uma avaliação para este modelo
+    const historyEval = await prisma.evaluation.create({
+      data: {
+        variantId: testVariant.id,
+        modelName: createdModel.name,
+        capacityName: testVariant.capacity,
+        grade: 'A',
+        hasReplacedPart: false,
+        basePriceGradeA: testVariant.priceGradeA,
+        gradeDiscount: 0,
+        totalPartsDeduction: 0,
+        finalValue: testVariant.priceGradeA,
+        customerName: 'Cliente Preservação',
+        notes: 'Verificação de retenção de histórico',
+      },
+    });
+
+    assert(historyEval.id > 0, 'Avaliação histórica deve ter sido criada');
+
+    // 7.3 Excluir o modelo com a lógica de preservação
+    for (const v of createdModel.variants) {
+      await prisma.evaluation.updateMany({
+        where: { variantId: v.id },
+        data: {
+          modelName: createdModel.name,
+          capacityName: v.capacity,
+          variantId: null,
+        },
+      });
+    }
+
+    await prisma.model.delete({ where: { id: createdModel.id } });
+
+    // 7.4 Verificar que as peças e variantes do modelo foram excluídas em cascata
+    const remainingVariants = await prisma.variant.findMany({ where: { modelId: createdModel.id } });
+    const remainingParts = await prisma.part.findMany({ where: { modelId: createdModel.id } });
+    assert(remainingVariants.length === 0, 'Variantes do modelo devem ser removidas em cascata');
+    assert(remainingParts.length === 0, 'Peças do modelo devem ser removidas em cascata da aba de peças');
+
+    // 7.5 Verificar que o histórico da avaliação foi preservado intacto
+    const preservedEval = await prisma.evaluation.findUnique({ where: { id: historyEval.id } });
+    assert(preservedEval !== null, 'Registro de avaliação no histórico DEVE ser preservado');
+    assert(preservedEval?.variantId === null, 'variantId deve ter sido desacoplado com segurança para null');
+    assert(preservedEval?.modelName === 'iPhone Teste Especial', 'modelName histórico original deve estar gravado intacto');
+    assert(preservedEval?.capacityName === '128GB', 'capacityName histórica deve estar gravada intacta');
+    assert(preservedEval?.finalValue === 2000, 'Valor final da avaliação histórica preservada deve ser 2000');
+
+    // Limpeza da avaliação de teste
+    await prisma.evaluation.delete({ where: { id: historyEval.id } });
+    console.log('🧹 Dados de teste de ciclo de vida de modelo removidos.');
+
     console.log(`\n================================`);
     console.log(`Resultados: ${passed} passaram, ${failed} falharam.`);
     console.log(`================================\n`);

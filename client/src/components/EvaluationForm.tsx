@@ -60,6 +60,26 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
     return selectedModel.variants.find((v) => v.id === selectedVariantId) || null;
   }, [selectedModel, selectedVariantId]);
 
+  // Dynamic categories/series based on actual models in the catalog
+  const dynamicSeries = useMemo(() => {
+    const list: Array<{ id: string; label: string }> = [{ id: 'all', label: 'Todos' }];
+    const foundNumbers = new Set<string>();
+
+    models.forEach((m) => {
+      const matches = m.name.match(/\b\d+\b/g);
+      if (matches) {
+        matches.forEach((num) => foundNumbers.add(num));
+      }
+    });
+
+    const sortedNumbers = Array.from(foundNumbers).sort((a, b) => Number(a) - Number(b));
+    sortedNumbers.forEach((num) => {
+      list.push({ id: num, label: `Linha ${num}` });
+    });
+
+    return list;
+  }, [models]);
+
   // Filter models by series and search text
   const filteredModels = useMemo(() => {
     return models.filter((m) => {
@@ -67,23 +87,26 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
       if (!matchesSearch) return false;
 
       if (selectedSeries === 'all') return true;
-      if (selectedSeries === '12') return m.name.includes('12');
-      if (selectedSeries === '13') return m.name.includes('13');
-      if (selectedSeries === '14') return m.name.includes('14');
-      if (selectedSeries === '15') return m.name.includes('15');
-      if (selectedSeries === '16') return m.name.includes('16');
-      return true;
+      return m.name.toLowerCase().includes(selectedSeries.toLowerCase());
     });
   }, [models, selectedSeries, searchModel]);
 
-  // Initial selection: select first model when models load if none selected
+  // Initial and reactive selection: keep selection valid when models are added or deleted
   useEffect(() => {
-    if (models.length > 0 && !selectedModelId) {
-      const defaultModel = models[0];
-      setSelectedModelId(defaultModel.id);
-      if (defaultModel.variants.length > 0) {
-        setSelectedVariantId(defaultModel.variants[0].id);
+    if (models.length > 0) {
+      const modelStillExists = models.some((m) => m.id === selectedModelId);
+      if (!selectedModelId || !modelStillExists) {
+        const defaultModel = models[0];
+        setSelectedModelId(defaultModel.id);
+        if (defaultModel.variants.length > 0) {
+          setSelectedVariantId(defaultModel.variants[0].id);
+        } else {
+          setSelectedVariantId(null);
+        }
       }
+    } else {
+      setSelectedModelId(null);
+      setSelectedVariantId(null);
     }
   }, [models, selectedModelId]);
 
@@ -217,20 +240,13 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
                   Modelo do iPhone
                 </h3>
                 <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                  20 modelos disponíveis (iPhone 12 ao 16 Pro Max)
+                  {models.length} {models.length === 1 ? 'modelo disponível' : 'modelos disponíveis'} no catálogo
                 </p>
               </div>
 
               {/* Filtro por Família (Pills horizontais com rolagem suave e min 44px) */}
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
-                {[
-                  { id: 'all', label: 'Todos' },
-                  { id: '12', label: 'Linha 12' },
-                  { id: '13', label: 'Linha 13' },
-                  { id: '14', label: 'Linha 14' },
-                  { id: '15', label: 'Linha 15' },
-                  { id: '16', label: 'Linha 16' },
-                ].map((s) => (
+                {dynamicSeries.map((s) => (
                   <button
                     key={s.id}
                     onClick={() => setSelectedSeries(s.id)}

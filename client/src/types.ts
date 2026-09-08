@@ -59,8 +59,10 @@ export interface EvaluationPart {
 
 export interface Evaluation {
   id: number;
-  variantId: number;
-  variant: Variant & { model: Model };
+  variantId?: number | null;
+  variant?: (Variant & { model: Model }) | null;
+  modelName?: string | null;
+  capacityName?: string | null;
   grade: 'A' | 'B' | 'C';
   hasReplacedPart: boolean;
   basePriceGradeA: number;

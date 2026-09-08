@@ -8,6 +8,8 @@ import {
   addPart,
   updatePart,
   deletePart,
+  createModel,
+  deleteModel,
 } from '../services/api';
 import {
   Sliders,
@@ -20,6 +22,7 @@ import {
   Wrench,
   AlertCircle,
   Smartphone,
+  X,
 } from 'lucide-react';
 
 interface AdminPricingProps {
@@ -59,6 +62,79 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
       showToast(err.message || 'Erro ao salvar descontos', 'error');
     } finally {
       setSavingSettings(false);
+    }
+  };
+
+  // Model Management State (Add & Delete)
+  const [isCreateModelOpen, setIsCreateModelOpen] = useState<boolean>(false);
+  const [newModelName, setNewModelName] = useState<string>('');
+  const [newModelCapacities, setNewModelCapacities] = useState<Array<{ capacity: string; priceGradeA: number }>>([
+    { capacity: '128GB', priceGradeA: 1500 },
+    { capacity: '256GB', priceGradeA: 1800 },
+  ]);
+  const [createDefaultParts, setCreateDefaultParts] = useState<boolean>(true);
+  const [isSubmittingModel, setIsSubmittingModel] = useState<boolean>(false);
+  const [deletingModelId, setDeletingModelId] = useState<number | null>(null);
+
+  const handleAddModelCapacityRow = () => {
+    setNewModelCapacities([...newModelCapacities, { capacity: '512GB', priceGradeA: 2200 }]);
+  };
+
+  const handleRemoveModelCapacityRow = (index: number) => {
+    if (newModelCapacities.length <= 1) {
+      showToast('O modelo deve possuir pelo menos uma capacidade.', 'error');
+      return;
+    }
+    setNewModelCapacities(newModelCapacities.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateModelCapacityRow = (index: number, field: 'capacity' | 'priceGradeA', value: any) => {
+    const updated = [...newModelCapacities];
+    updated[index] = { ...updated[index], [field]: value };
+    setNewModelCapacities(updated);
+  };
+
+  const handleCreateModel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newModelName.trim()) {
+      showToast('Nome do modelo é obrigatório.', 'error');
+      return;
+    }
+    try {
+      setIsSubmittingModel(true);
+      await createModel({
+        name: newModelName.trim(),
+        variants: newModelCapacities,
+        createDefaultParts,
+      });
+      showToast(`Modelo "${newModelName.trim()}" cadastrado com sucesso!`);
+      setNewModelName('');
+      setNewModelCapacities([
+        { capacity: '128GB', priceGradeA: 1500 },
+        { capacity: '256GB', priceGradeA: 1800 },
+      ]);
+      setIsCreateModelOpen(false);
+      onRefreshData();
+    } catch (err: any) {
+      showToast(err.message || 'Erro ao cadastrar modelo', 'error');
+    } finally {
+      setIsSubmittingModel(false);
+    }
+  };
+
+  const handleDeleteModel = async (model: Model) => {
+    const confirmMessage = `Tem certeza que deseja excluir o modelo "${model.name}"?\n\n⚠️ Consequências:\n- Todas as ${model.variants.length} capacidades e ${model.parts.length} peças deste modelo serão excluídas da aba de Peças e Avaliação.\n- O histórico de avaliações passadas será PRESERVADO com segurança com o nome do aparelho.\n\nDeseja continuar?`;
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      setDeletingModelId(model.id);
+      const res = await deleteModel(model.id);
+      showToast(res.message || `Modelo "${model.name}" excluído com sucesso!`);
+      onRefreshData();
+    } catch (err: any) {
+      showToast(err.message || 'Erro ao excluir modelo', 'error');
+    } finally {
+      setDeletingModelId(null);
     }
   };
 
@@ -125,7 +201,13 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
   const [newPartCost, setNewPartCost] = useState<number>(300);
   const [isAddingPart, setIsAddingPart] = useState<boolean>(false);
 
-  const selectedPartsModel = models.find((m) => m.id === selectedPartsModelId) || models[0];
+  React.useEffect(() => {
+    if (models.length > 0 && !models.some((m) => m.id === selectedPartsModelId)) {
+      setSelectedPartsModelId(models[0].id);
+    }
+  }, [models, selectedPartsModelId]);
+
+  const selectedPartsModel = models.find((m) => m.id === selectedPartsModelId) || models[0] || null;
 
   const handleSavePartCost = async (partId: number) => {
     try {
@@ -313,30 +395,58 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
 
           {/* Lista de Modelos e Preços Base em Cartões Verticais (Zero scroll horizontal) */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-            <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+            <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900">Catálogo de Preços Base (Grade A)</h3>
                 <p className="text-[11px] sm:text-xs text-slate-500">
-                  Valores salvos instantaneamente no SQLite
+                  Gerencie modelos, capacidades e preços salvos no banco
                 </p>
               </div>
-              <span className="text-[11px] font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
-                {models.length} Modelos
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full">
+                  {models.length} {models.length === 1 ? 'Modelo' : 'Modelos'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModelOpen(true)}
+                  className="min-h-[42px] px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Novo Modelo</span>
+                </button>
+              </div>
             </div>
 
             <div className="divide-y divide-slate-100 max-h-[620px] overflow-y-auto">
-              {models.map((model) => (
-                <div key={model.id} className="p-4 sm:p-5 hover:bg-slate-50/60 transition">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <div className="flex items-center gap-2">
-                      <Smartphone className="w-4 h-4 text-slate-500" />
-                      <span className="font-extrabold text-slate-900 text-sm">{model.name}</span>
+              {models.length === 0 ? (
+                <div className="p-8 text-center text-slate-400">
+                  <Smartphone className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                  <p className="font-bold text-slate-700 text-sm">Nenhum modelo cadastrado.</p>
+                  <p className="text-xs text-slate-500 mt-1">Clique em "Novo Modelo" acima para cadastrar o primeiro.</p>
+                </div>
+              ) : (
+                models.map((model) => (
+                  <div key={model.id} className="p-4 sm:p-5 hover:bg-slate-50/60 transition">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Smartphone className="w-4 h-4 text-slate-500 shrink-0" />
+                        <span className="font-extrabold text-slate-900 text-sm sm:text-base">{model.name}</span>
+                        <span className="text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md font-medium">
+                          {model.variants.length} cap. • {model.parts.length} peças
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteModel(model)}
+                        disabled={deletingModelId === model.id}
+                        title={`Excluir modelo ${model.name}`}
+                        className="min-h-[38px] px-2.5 py-1 text-red-600 hover:text-red-700 active:bg-red-100 hover:bg-red-50 border border-red-200 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">{deletingModelId === model.id ? 'Excluindo...' : 'Excluir Modelo'}</span>
+                      </button>
                     </div>
-                    <span className="text-[11px] text-slate-400">
-                      {model.variants.length} opções
-                    </span>
-                  </div>
 
                   {/* Grid / Stack de variantes do modelo */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
@@ -404,7 +514,7 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
                     })}
                   </div>
                 </div>
-              ))}
+              )))}
             </div>
           </div>
         </div>
@@ -500,7 +610,15 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
       {/* SUBTAB 3: Peças por Modelo */}
       {activeSubTab === 'pecas' && (
         <div className="space-y-4 sm:space-y-6">
-          {/* Seletor de Modelo para Peças */}
+          {!selectedPartsModel ? (
+            <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-400">
+              <Wrench className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+              <p className="font-bold text-slate-700 text-sm">Nenhum modelo cadastrado.</p>
+              <p className="text-xs text-slate-500 mt-1">Cadastre um modelo na aba "Preços Base" para gerenciar suas peças.</p>
+            </div>
+          ) : (
+            <>
+              {/* Seletor de Modelo para Peças */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 shadow-xs space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
@@ -645,6 +763,139 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
                 })}
               </div>
             )}
+          </div>
+        </>
+      )}
+    </div>
+  )}
+
+      {/* Modal Mobile-First para Cadastrar Novo Modelo */}
+      {isCreateModelOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200 my-auto">
+            {/* Top Bar */}
+            <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center space-x-2">
+                <Smartphone className="w-5 h-5 text-emerald-400" />
+                <h3 className="font-bold text-base sm:text-lg">Cadastrar Novo Modelo</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateModelOpen(false)}
+                aria-label="Fechar"
+                className="text-slate-400 hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl active:bg-slate-800 hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleCreateModel} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 overscroll-contain">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Nome do Modelo / Aparelho *
+                </label>
+                <input
+                  type="text"
+                  value={newModelName}
+                  onChange={(e) => setNewModelName(e.target.value)}
+                  placeholder="Ex: iPhone 17 Pro Max ou Galaxy S24 Ultra"
+                  required
+                  autoFocus
+                  className="w-full min-h-[48px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-base font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                />
+              </div>
+
+              {/* Capacidades Iniciais */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Capacidades & Preço Base Grade A
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddModelCapacityRow}
+                    className="text-xs text-emerald-700 font-bold hover:text-emerald-800 flex items-center gap-1 cursor-pointer py-1 px-2 rounded-md hover:bg-emerald-50"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Adicionar capacidade
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {newModelCapacities.map((row, idx) => (
+                    <div key={idx} className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                      <div className="w-1/2">
+                        <input
+                          type="text"
+                          value={row.capacity}
+                          onChange={(e) => handleUpdateModelCapacityRow(idx, 'capacity', e.target.value)}
+                          placeholder="Ex: 128GB"
+                          required
+                          className="w-full min-h-[40px] px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-900"
+                        />
+                      </div>
+                      <div className="w-1/2 relative">
+                        <span className="absolute left-2.5 top-2.5 text-xs text-slate-400 font-bold">R$</span>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          step="10"
+                          value={row.priceGradeA}
+                          onChange={(e) => handleUpdateModelCapacityRow(idx, 'priceGradeA', Number(e.target.value))}
+                          placeholder="Preço Grade A"
+                          required
+                          className="w-full min-h-[40px] pl-8 pr-2 py-1.5 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-900"
+                        />
+                      </div>
+                      {newModelCapacities.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveModelCapacityRow(idx)}
+                          className="w-9 h-9 shrink-0 flex items-center justify-center text-slate-400 hover:text-red-600 rounded-lg transition hover:bg-red-50 cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Opção de Autogerar Peças */}
+              <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-xl p-3 flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  id="auto-parts-check"
+                  checked={createDefaultParts}
+                  onChange={(e) => setCreateDefaultParts(e.target.checked)}
+                  className="w-5 h-5 mt-0.5 rounded-md text-emerald-600 focus:ring-emerald-500 cursor-pointer shrink-0"
+                />
+                <label htmlFor="auto-parts-check" className="text-xs text-slate-700 cursor-pointer">
+                  <span className="font-bold text-slate-900 block">Cadastrar peças padrão automaticamente</span>
+                  Cria 6 peças essenciais (Bateria, Tela, Câmera, Conector, etc.) prontas na aba de Peças para você editar os custos quando quiser.
+                </label>
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="pt-2 flex flex-col-reverse sm:flex-row justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModelOpen(false)}
+                  className="min-h-[44px] px-4 py-2 border border-slate-300 rounded-xl text-sm font-medium text-slate-700 active:bg-slate-100 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingModel}
+                  className="min-h-[44px] px-5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-xl text-sm font-bold shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Plus className="w-4 h-4" />
+                  {isSubmittingModel ? 'Cadastrando...' : 'Cadastrar Modelo'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

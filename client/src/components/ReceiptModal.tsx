@@ -76,7 +76,8 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ evaluation, onClose 
                   Aparelho
                 </span>
                 <h4 className="text-lg font-bold text-slate-900 mt-1">
-                  {evaluation.variant.model.name} - {evaluation.variant.capacity}
+                  {evaluation.variant?.model?.name || evaluation.modelName || 'Aparelho'}
+                  {(evaluation.variant?.capacity || evaluation.capacityName) ? ` - ${evaluation.variant?.capacity || evaluation.capacityName}` : ''}
                 </h4>
               </div>
               <div className="text-right">

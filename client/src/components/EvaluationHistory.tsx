@@ -29,8 +29,8 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
 
   const filteredEvaluations = evaluations.filter((ev) => {
     const term = searchTerm.toLowerCase();
-    const modelName = ev.variant.model.name.toLowerCase();
-    const capacity = ev.variant.capacity.toLowerCase();
+    const modelName = (ev.variant?.model?.name || ev.modelName || '').toLowerCase();
+    const capacity = (ev.variant?.capacity || ev.capacityName || '').toLowerCase();
     const customer = (ev.customerName || '').toLowerCase();
     const notes = (ev.notes || '').toLowerCase();
     return (
@@ -153,10 +153,14 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
                   <div>
                     <div className="flex items-center gap-1.5">
                       <Smartphone className="w-4 h-4 text-slate-500 shrink-0" />
-                      <h4 className="font-bold text-slate-900 text-sm">{ev.variant.model.name}</h4>
-                      <span className="bg-slate-100 text-slate-700 text-[11px] px-2 py-0.2 rounded font-mono font-bold">
-                        {ev.variant.capacity}
-                      </span>
+                      <h4 className="font-bold text-slate-900 text-sm">
+                        {ev.variant?.model?.name || ev.modelName || 'Aparelho'}
+                      </h4>
+                      {(ev.variant?.capacity || ev.capacityName) && (
+                        <span className="bg-slate-100 text-slate-700 text-[11px] px-2 py-0.2 rounded font-mono font-bold">
+                          {ev.variant?.capacity || ev.capacityName}
+                        </span>
+                      )}
                     </div>
                     <span className="text-[11px] text-slate-400 block mt-0.5 ml-5">
                       Base Grade A: {formatCurrency(ev.basePriceGradeA)}
@@ -290,10 +294,14 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
                       <td className="p-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Smartphone className="w-4 h-4 text-slate-500" />
-                          <span className="font-bold text-slate-900">{ev.variant.model.name}</span>
-                          <span className="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded font-mono font-bold">
-                            {ev.variant.capacity}
+                          <span className="font-bold text-slate-900">
+                            {ev.variant?.model?.name || ev.modelName || 'Aparelho'}
                           </span>
+                          {(ev.variant?.capacity || ev.capacityName) && (
+                            <span className="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded font-mono font-bold">
+                              {ev.variant?.capacity || ev.capacityName}
+                            </span>
+                          )}
                         </div>
                         <span className="text-[11px] text-slate-400 block mt-0.5">
                           Base Grade A: {formatCurrency(ev.basePriceGradeA)}
