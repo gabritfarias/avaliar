@@ -13,17 +13,17 @@ const evaluations_routes_1 = __importDefault(require("./routes/evaluations.route
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({ origin: '*' }));
 app.use(express_1.default.json());
-// Routes
-app.use('/api/models', models_routes_1.default);
-app.use('/api/settings', settings_routes_1.default);
-app.use('/api/parts', parts_routes_1.default);
-app.use('/api/evaluations', evaluations_routes_1.default);
-app.get('/api/health', (_req, res) => {
+// Routes (suporta tanto /rota quanto /api/rota)
+app.use(['/api/models', '/models'], models_routes_1.default);
+app.use(['/api/settings', '/settings'], settings_routes_1.default);
+app.use(['/api/parts', '/parts'], parts_routes_1.default);
+app.use(['/api/evaluations', '/evaluations'], evaluations_routes_1.default);
+app.get(['/api/health', '/health'], (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.listen(Number(PORT), '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT} (0.0.0.0)`);
 });
 exports.default = app;
