@@ -23,18 +23,18 @@ router.post('/login', async (req, res) => {
       where: { email: normalizedIdentifier },
     });
 
-    // Se não encontrou e for 'admin' ou começar com 'admin@', buscar 'administrador'
-    if (!user && (normalizedIdentifier === 'admin' || normalizedIdentifier.startsWith('admin@'))) {
-      user = await prisma.user.findUnique({
-        where: { email: 'administrador' },
+    // Se não encontrou e for 'administrador' ou 'admin', buscar admin ou administrador
+    if (!user && (normalizedIdentifier === 'administrador' || normalizedIdentifier === 'admin')) {
+      user = await prisma.user.findFirst({
+        where: { email: { in: ['admin', 'administrador'] } },
       });
     }
 
-    // Se foi digitado como e-mail (ex: administrador@qualquer.com ou loja@...)
+    // Se foi digitado como e-mail (ex: admin@qualquer.com ou administrador@qualquer.com)
     if (!user && normalizedIdentifier.includes('@')) {
       const usernamePart = normalizedIdentifier.split('@')[0];
-      user = await prisma.user.findUnique({
-        where: { email: usernamePart },
+      user = await prisma.user.findFirst({
+        where: { email: { in: [usernamePart, usernamePart === 'administrador' ? 'admin' : usernamePart] } },
       });
     }
 

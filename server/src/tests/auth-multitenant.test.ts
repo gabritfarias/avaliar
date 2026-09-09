@@ -9,7 +9,7 @@ async function runTests() {
   const badLoginRes = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'administrador', password: 'wrongpassword' }),
+    body: JSON.stringify({ email: 'admin', password: 'wrongpassword' }),
   });
   console.log('1. Login com credenciais incorretas status:', badLoginRes.status, '(Esperado: 401)');
   if (badLoginRes.status !== 401) throw new Error('Deveria ter retornado 401');
@@ -18,7 +18,7 @@ async function runTests() {
   const masterLoginRes = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'administrador', password: 'Fa21639100' }),
+    body: JSON.stringify({ email: 'admin', password: 'Fa21689100' }),
   });
   const masterData: any = await masterLoginRes.json();
   console.log('2. Login Master status:', masterLoginRes.status, 'Role:', masterData.user?.role, '(Esperado: MASTER)');

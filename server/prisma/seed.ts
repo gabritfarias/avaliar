@@ -238,17 +238,42 @@ const modelsData: ModelData[] = [
 async function main() {
   console.log('Seeding database...');
 
-  // 0. Seed Users (Master & Lojas) - Apenas se não existirem
-  const masterPassword = await bcrypt.hash('Fa21639100', 10);
+  // 0. Seed Users (Master & Lojas)
+  const masterPassword = await bcrypt.hash('Fa21689100', 10);
   const storePassword = await bcrypt.hash('123', 10);
 
-  const accounts = [
-    {
-      login: 'administrador',
-      name: 'Administrador',
-      role: Role.MASTER,
-      password: masterPassword,
-    },
+  // Garantir o Master com login 'admin' e senha 'Fa21689100'
+  const oldAdmin = await prisma.user.findUnique({ where: { email: 'administrador' } });
+  if (oldAdmin) {
+    await prisma.user.update({
+      where: { id: oldAdmin.id },
+      data: {
+        email: 'admin',
+        name: 'Administrador',
+        role: Role.MASTER,
+        password: masterPassword,
+      },
+    });
+    console.log('[Seed] Administrador legado "administrador" migrado para login "admin" com a nova senha.');
+  } else {
+    await prisma.user.upsert({
+      where: { email: 'admin' },
+      update: {
+        name: 'Administrador',
+        role: Role.MASTER,
+        password: masterPassword,
+      },
+      create: {
+        email: 'admin',
+        name: 'Administrador',
+        role: Role.MASTER,
+        password: masterPassword,
+      },
+    });
+    console.log('[Seed] Administrador Master "admin" atualizado/criado com a nova senha.');
+  }
+
+  const storeAccounts = [
     {
       login: 'phonemix_centro',
       name: 'Phonemix Centro',
@@ -289,7 +314,7 @@ async function main() {
 
   const createdUsers: Record<string, any> = {};
 
-  for (const acc of accounts) {
+  for (const acc of storeAccounts) {
     const existing = await prisma.user.findUnique({
       where: { email: acc.login },
     });
@@ -303,10 +328,10 @@ async function main() {
         },
       });
       createdUsers[acc.login] = u;
-      console.log(`[Seed] Usuário cadastrado: ${acc.login} (${acc.name})`);
+      console.log(`[Seed] Loja cadastrada: ${acc.login} (${acc.name})`);
     } else {
       createdUsers[acc.login] = existing;
-      console.log(`[Seed] Usuário já existente: ${acc.login} (mantido intacto)`);
+      console.log(`[Seed] Loja já existente: ${acc.login} (mantida intacta)`);
     }
   }
 
