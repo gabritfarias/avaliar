@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Model, Variant, CalculationBreakdown, GradeSettings, Evaluation } from '../types';
+import { Model, Variant, CalculationBreakdown, GradeSettings, Evaluation, ReplacedComponentDetail } from '../types';
 import { calculateEvaluation, saveEvaluation } from '../services/api';
 import { CalculationSummary } from './CalculationSummary';
 import { ReceiptModal } from './ReceiptModal';
@@ -18,6 +18,12 @@ import {
   Search,
 } from 'lucide-react';
 
+const AVAILABLE_COMPONENTS = [
+  { id: 'Bateria', label: 'Bateria', icon: '🔋' },
+  { id: 'Tela', label: 'Tela', icon: '📱' },
+  { id: 'Câmera', label: 'Câmera', icon: '📷' },
+];
+
 interface EvaluationFormProps {
   models: Model[];
   settings: GradeSettings;
@@ -34,7 +40,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
   const [selectedModelId, setSelectedModelId] = useState<number | null>(null);
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   const [hasReplacedPart, setHasReplacedPart] = useState<boolean>(false);
-  const [replacedComponents, setReplacedComponents] = useState<string[]>([]);
+  const [replacedDetails, setReplacedDetails] = useState<ReplacedComponentDetail[]>([]);
   const [grade, setGrade] = useState<'A' | 'B' | 'C'>('A');
   const [selectedPartIds, setSelectedPartIds] = useState<number[]>([]);
   const [customerName, setCustomerName] = useState<string>('');
@@ -122,7 +128,23 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
     }
   };
 
-  // When replaced part flag changes: allows choosing B or C (defaults to B if previously A)
+  const unknownPartsCount = useMemo(() => {
+    if (!hasReplacedPart) return 0;
+    return replacedDetails.filter((d) => d.status === 'UNKNOWN').length;
+  }, [hasReplacedPart, replacedDetails]);
+
+  const hasUnknownPart = unknownPartsCount > 0;
+
+  // Sync grade locking: unknown parts force Grade C
+  useEffect(() => {
+    if (hasUnknownPart) {
+      setGrade('C');
+    } else if (hasReplacedPart && grade === 'A') {
+      setGrade('B');
+    }
+  }, [hasUnknownPart, hasReplacedPart]);
+
+  // When replaced part flag changes:
   const handleReplacedPartToggle = (checked: boolean) => {
     setHasReplacedPart(checked);
     if (checked) {
@@ -130,13 +152,25 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
         setGrade('B');
       }
     } else {
-      setReplacedComponents([]);
+      setReplacedDetails([]);
+      setGrade('A');
     }
   };
 
-  const handleToggleReplacedComponent = (comp: string) => {
-    setReplacedComponents((prev) =>
-      prev.includes(comp) ? prev.filter((c) => c !== comp) : [...prev, comp]
+  const handleToggleComponent = (compName: string) => {
+    setReplacedDetails((prev) => {
+      const exists = prev.find((d) => d.name === compName);
+      if (exists) {
+        return prev.filter((d) => d.name !== compName);
+      } else {
+        return [...prev, { name: compName, status: 'GENUINE' }];
+      }
+    });
+  };
+
+  const handleSetComponentStatus = (compName: string, status: 'GENUINE' | 'UNKNOWN') => {
+    setReplacedDetails((prev) =>
+      prev.map((d) => (d.name === compName ? { ...d, status } : d))
     );
   };
 
@@ -161,7 +195,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
       variantId: selectedVariantId,
       grade,
       hasReplacedPart,
-      replacedComponents,
+      replacedDetails,
       partIds: selectedPartIds,
     })
       .then((data) => {
@@ -178,7 +212,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [selectedVariantId, grade, hasReplacedPart, replacedComponents, selectedPartIds]);
+  }, [selectedVariantId, grade, hasReplacedPart, replacedDetails, selectedPartIds]);
 
   // Save evaluation to database
   const handleSaveEvaluation = async () => {
@@ -190,7 +224,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
         variantId: selectedVariantId,
         grade,
         hasReplacedPart,
-        replacedComponents,
+        replacedDetails,
         partIds: selectedPartIds,
         customerName: customerName.trim() || undefined,
         notes: notes.trim() || undefined,
@@ -205,7 +239,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
       setNotes('');
       setSelectedPartIds([]);
       setHasReplacedPart(false);
-      setReplacedComponents([]);
+      setReplacedDetails([]);
       setGrade('A');
     } catch (error: any) {
       alert(error.message || 'Erro ao salvar avaliação');
@@ -397,23 +431,37 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
 
           {/* Passo 3: Verificação de Peça Substituída */}
           <section className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-6">
-            <div className="mb-3">
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold shrink-0">
-                  3
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold shrink-0">
+                    3
+                  </span>
+                  Peça Substituída
+                </h3>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                  Verifique se há aviso em "Ajustes &gt; Geral &gt; Sobre" no iPhone
+                </p>
+              </div>
+
+              {hasReplacedPart && (
+                <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${
+                  hasUnknownPart
+                    ? 'bg-red-100 text-red-800 border border-red-300'
+                    : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                }`}>
+                  {hasUnknownPart ? `Peça Desconhecida (${unknownPartsCount})` : 'Genuína Apple'}
                 </span>
-                Verificação de Peça Substituída
-              </h3>
-              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                Verifique em "Ajustes &gt; Geral &gt; Sobre" no iPhone
-              </p>
+              )}
             </div>
 
             {/* Checkbox em Destaque Touch Friendly */}
             <label
               className={`flex items-start gap-3 p-3.5 sm:p-4 rounded-xl border-2 transition-all cursor-pointer select-none active:scale-[0.99] min-h-[56px] ${
                 hasReplacedPart
-                  ? 'border-amber-500 bg-amber-50/70 shadow-xs'
+                  ? hasUnknownPart
+                    ? 'border-red-400 bg-red-50/50 shadow-xs'
+                    : 'border-amber-500 bg-amber-50/70 shadow-xs'
                   : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
               }`}
             >
@@ -428,41 +476,110 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
                   Aparelho possui peça substituída
                 </span>
                 <span className="text-[11px] sm:text-xs text-slate-600 mt-1 block leading-relaxed">
-                  Permite classificar o aparelho entre <strong>Grade B</strong> ou <strong>Grade C</strong>.
+                  Permite classificar como <strong>Genuína Apple</strong> (Grade B ou C) ou <strong>Desconhecida</strong> (trava Grade C com penalidade).
                 </span>
               </div>
             </label>
 
-            {/* Campo Dinâmico de Seleção de Peça Substituída */}
+            {/* Seletor Dinâmico de Peças e Status (Genuína vs Desconhecida) */}
             {hasReplacedPart && (
-              <div className="mt-3.5 pt-3.5 border-t border-amber-200/80 animate-in fade-in slide-in-from-top-2 space-y-2">
+              <div className="mt-3.5 pt-3.5 border-t border-slate-200 animate-in fade-in slide-in-from-top-2 space-y-3">
                 <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  Qual peça foi substituída? (Selecione uma ou mais)
+                  Qual peça foi substituída e qual o status?
                 </label>
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                  {[
-                    { id: 'Bateria', label: 'Bateria', icon: '🔋' },
-                    { id: 'Tela', label: 'Tela', icon: '📱' },
-                    { id: 'Câmera', label: 'Câmera', icon: '📷' },
-                  ].map((comp) => {
-                    const isSelected = replacedComponents.includes(comp.id);
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {AVAILABLE_COMPONENTS.map((comp) => {
+                    const detail = replacedDetails.find((d) => d.name === comp.id);
+                    const isSelected = !!detail;
                     return (
-                      <button
+                      <div
                         key={comp.id}
-                        type="button"
-                        onClick={() => handleToggleReplacedComponent(comp.id)}
-                        className={`min-h-[48px] px-3 py-2 rounded-xl border font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
+                        className={`p-3 rounded-xl border transition-all ${
                           isSelected
-                            ? 'bg-amber-600 text-white border-amber-700 shadow-xs'
-                            : 'bg-white text-slate-700 border-slate-300 hover:border-amber-400 hover:bg-amber-50/50'
+                            ? detail.status === 'UNKNOWN'
+                              ? 'border-red-400 bg-red-50/60 shadow-xs ring-1 ring-red-400/30'
+                              : 'border-emerald-400 bg-emerald-50/60 shadow-xs ring-1 ring-emerald-400/30'
+                            : 'border-slate-200 bg-white hover:border-slate-300'
                         }`}
                       >
-                        <span>{comp.icon}</span>
-                        <span>{comp.label}</span>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleComponent(comp.id)}
+                          className="w-full flex items-center justify-between text-left cursor-pointer select-none"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{comp.icon}</span>
+                            <span className="font-bold text-slate-900 text-xs sm:text-sm">
+                              {comp.label}
+                            </span>
+                          </div>
+                          <span
+                            className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold transition-all ${
+                              isSelected
+                                ? detail.status === 'UNKNOWN'
+                                  ? 'bg-red-600 text-white'
+                                  : 'bg-emerald-600 text-white'
+                                : 'border border-slate-300 text-transparent'
+                            }`}
+                          >
+                            ✓
+                          </span>
+                        </button>
+
+                        {/* Seletor do status da peça (Genuína vs Desconhecida) */}
+                        {isSelected && (
+                          <div className="mt-2.5 pt-2 border-t border-slate-200/80 space-y-1.5">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                              Classificação:
+                            </span>
+                            <div className="grid grid-cols-2 gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleSetComponentStatus(comp.id, 'GENUINE')}
+                                className={`min-h-[34px] px-2 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer select-none active:scale-95 ${
+                                  detail.status === 'GENUINE'
+                                    ? 'bg-emerald-600 text-white shadow-xs'
+                                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                                }`}
+                              >
+                                Genuína
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleSetComponentStatus(comp.id, 'UNKNOWN')}
+                                className={`min-h-[34px] px-2 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer select-none active:scale-95 ${
+                                  detail.status === 'UNKNOWN'
+                                    ? 'bg-red-600 text-white shadow-xs'
+                                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-red-50'
+                                }`}
+                              >
+                                Desconhecida
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
+
+                {/* Banner informativo se houver peça desconhecida */}
+                {hasUnknownPart && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-900 flex items-start gap-2.5 animate-in fade-in">
+                    <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold">
+                        {unknownPartsCount === 1 ? '1 peça desconhecida' : `${unknownPartsCount} peças desconhecidas`} selecionada(s):
+                      </p>
+                      <p className="text-[11px] text-red-700 mt-0.5 leading-relaxed">
+                        • Grade C aplicada automaticamente.<br />
+                        • Penalidade de <strong>{unknownPartsCount === 1 ? 'R$ 200,00' : 'R$ 300,00'}</strong> deduzida nos valores de compra e venda.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -482,11 +599,15 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
                 </p>
               </div>
 
-              {hasReplacedPart && (
-                <span className="text-[11px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md">
-                  Escolha manual: Grade B ou C
+              {hasUnknownPart ? (
+                <span className="text-[11px] font-bold text-red-800 bg-red-100 border border-red-300 px-2 py-0.5 rounded-md">
+                  Travado em Grade C (Peça Desconhecida)
                 </span>
-              )}
+              ) : hasReplacedPart ? (
+                <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-md">
+                  Escolha manual: Grade B ou C (Genuína Apple)
+                </span>
+              ) : null}
             </div>
 
             {/* Cards de Seleção de Grade Touch-friendly */}
@@ -496,12 +617,12 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
                 type="button"
                 disabled={hasReplacedPart}
                 onClick={() => setGrade('A')}
-                className={`min-h-[64px] p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between active:scale-[0.98] select-none ${
+                className={`min-h-[64px] p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between select-none ${
                   hasReplacedPart
                     ? 'opacity-40 cursor-not-allowed bg-slate-100 border-slate-200'
                     : grade === 'A'
-                    ? 'border-emerald-500 bg-emerald-50/50 ring-2 ring-emerald-500/30 shadow-xs'
-                    : 'border-slate-200 hover:border-slate-300 bg-white cursor-pointer active:bg-slate-50'
+                    ? 'border-emerald-500 bg-emerald-50/50 ring-2 ring-emerald-500/30 shadow-xs active:scale-[0.98]'
+                    : 'border-slate-200 hover:border-slate-300 bg-white cursor-pointer active:bg-slate-50 active:scale-[0.98]'
                 }`}
               >
                 <div>
@@ -523,11 +644,14 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
               {/* Grade B */}
               <button
                 type="button"
+                disabled={hasUnknownPart}
                 onClick={() => setGrade('B')}
-                className={`min-h-[64px] p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between active:scale-[0.98] cursor-pointer select-none ${
-                  grade === 'B'
-                    ? 'border-blue-500 bg-blue-50/50 ring-2 ring-blue-500/30 shadow-xs'
-                    : 'border-slate-200 hover:border-slate-300 bg-white active:bg-slate-50'
+                className={`min-h-[64px] p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between select-none ${
+                  hasUnknownPart
+                    ? 'opacity-40 cursor-not-allowed bg-slate-100 border-slate-200'
+                    : grade === 'B'
+                    ? 'border-blue-500 bg-blue-50/50 ring-2 ring-blue-500/30 shadow-xs cursor-pointer active:scale-[0.98]'
+                    : 'border-slate-200 hover:border-slate-300 bg-white cursor-pointer active:bg-slate-50 active:scale-[0.98]'
                 }`}
               >
                 <div>
@@ -538,11 +662,11 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
-                    Marcas de uso leves, bateria &le; 85% ou peça substituída.
+                    Marcas de uso leves, bateria &le; 85% ou peça genuína.
                   </p>
                 </div>
                 <div className="mt-2 pt-1.5 border-t border-slate-100 text-[11px] font-bold text-blue-700">
-                  Desconto: - {formatCurrency(settings.discountB)}
+                  {hasUnknownPart ? 'Indisponível (peça desconhecida)' : `Desconto: - ${formatCurrency(settings.discountB)}`}
                 </div>
               </button>
 
@@ -552,23 +676,37 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
                 onClick={() => setGrade('C')}
                 className={`min-h-[64px] p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between active:scale-[0.98] cursor-pointer select-none ${
                   grade === 'C'
-                    ? 'border-amber-500 bg-amber-50/60 ring-2 ring-amber-500/30 shadow-xs'
+                    ? hasUnknownPart
+                      ? 'border-red-500 bg-red-50/70 ring-2 ring-red-500/30 shadow-xs'
+                      : 'border-amber-500 bg-amber-50/60 ring-2 ring-amber-500/30 shadow-xs'
                     : 'border-slate-200 hover:border-slate-300 bg-white active:bg-slate-50'
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="font-black text-sm sm:text-base text-slate-900">Grade C</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      hasUnknownPart
+                        ? 'bg-red-100 text-red-900 border border-red-300'
+                        : 'bg-amber-100 text-amber-900'
+                    }`}>
                       - R$ {settings.discountC.toFixed(0)}
+                      {hasUnknownPart && ` + R$ ${unknownPartsCount >= 2 ? '300' : '200'}`}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
-                    Muitas marcas, desgastes acentuados ou peça substituída.
+                    {hasUnknownPart
+                      ? 'Travamento obrigatório devido a peça desconhecida.'
+                      : 'Muitas marcas, desgastes acentuados ou peça substituída.'}
                   </p>
                 </div>
                 <div className="mt-2 pt-1.5 border-t border-slate-100 text-[11px] font-bold text-amber-800">
-                  Desconto: - {formatCurrency(settings.discountC)}
+                  Desconto Grade: - {formatCurrency(settings.discountC)}
+                  {hasUnknownPart && (
+                    <span className="text-red-700 block text-[10px]">
+                      + Penalidade Desconhecida: - {formatCurrency(unknownPartsCount >= 2 ? 300 : 200)}
+                    </span>
+                  )}
                 </div>
               </button>
             </div>

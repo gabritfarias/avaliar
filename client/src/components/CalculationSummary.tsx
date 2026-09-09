@@ -4,6 +4,7 @@ import {
   Calculator,
   Wrench,
   ShieldAlert,
+  AlertTriangle,
   CheckCircle2,
   Sparkles,
   ChevronUp,
@@ -94,7 +95,7 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
             </span>
           </div>
 
-          {/* Step 2: Desconto da Grade */}
+          {/* Step 2: Desconto da Grade e Penalidade */}
           <div className="space-y-1.5 py-1 border-b border-slate-100">
             <div className="flex items-center justify-between text-sm">
               <div>
@@ -102,8 +103,12 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
                 <span className="text-slate-800 font-medium flex items-center gap-1.5">
                   Ajuste Grade {calculation.effectiveGrade}:
                   {calculation.hasReplacedPart && (
-                    <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded border border-amber-300">
-                      Peça Substituída
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                      (calculation.unknownPartsDeduction || 0) > 0
+                        ? 'bg-red-100 text-red-800 border-red-300'
+                        : 'bg-amber-100 text-amber-800 border-amber-300'
+                    }`}>
+                      {(calculation.unknownPartsDeduction || 0) > 0 ? 'Peça Desconhecida' : 'Peça Substituída'}
                     </span>
                   )}
                 </span>
@@ -113,9 +118,24 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
               </span>
             </div>
 
+            {/* Linha adicional se houver dedução por peça desconhecida */}
+            {(calculation.unknownPartsDeduction || 0) > 0 && (
+              <div className="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-red-50/80 border border-red-200">
+                <span className="text-red-800 font-semibold flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3 text-red-600" />
+                  Penalidade Peça Desconhecida ({calculation.unknownPartsCount || 1}x):
+                </span>
+                <span className="font-bold text-red-700">
+                  - {formatCurrency(calculation.unknownPartsDeduction || 0)}
+                </span>
+              </div>
+            )}
+
             <div className="flex justify-between items-center text-xs text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-lg">
-              <span>Subtotal após avaliação de grade:</span>
-              <span className="font-semibold text-slate-700">{formatCurrency(calculation.priceAfterGrade)}</span>
+              <span>Subtotal base de referência:</span>
+              <span className="font-semibold text-slate-700">
+                {formatCurrency(calculation.suggestedPurchasePrice || (calculation.priceAfterGrade - (calculation.unknownPartsDeduction || 0)))}
+              </span>
             </div>
           </div>
 
@@ -187,11 +207,19 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
             </div>
           </div>
 
-          {/* Warnings if replaced part */}
+          {/* Warnings if replaced part / unknown part */}
           {calculation.hasReplacedPart && (
-            <div className="flex items-start gap-2 bg-amber-50 text-amber-800 p-2.5 rounded-lg text-xs border border-amber-200">
-              <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
-              <span>Aparelho possui peça substituída (Grade {calculation.effectiveGrade} selecionada).</span>
+            <div className={`flex items-start gap-2 p-2.5 rounded-lg text-xs border ${
+              (calculation.unknownPartsDeduction || 0) > 0
+                ? 'bg-red-50 text-red-800 border-red-200'
+                : 'bg-amber-50 text-amber-800 border-amber-200'
+            }`}>
+              <ShieldAlert className={`w-4 h-4 shrink-0 mt-0.5 ${(calculation.unknownPartsDeduction || 0) > 0 ? 'text-red-600' : 'text-amber-600'}`} />
+              <span>
+                {(calculation.unknownPartsDeduction || 0) > 0
+                  ? `Grade C forçada e penalidade de ${formatCurrency(calculation.unknownPartsDeduction || 0)} aplicada devido a aviso de peça desconhecida.`
+                  : `Aparelho possui peça substituída genuína (Grade ${calculation.effectiveGrade} selecionada).`}
+              </span>
             </div>
           )}
 
@@ -248,7 +276,11 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
 
             <div className="text-xs text-slate-400 leading-tight mt-1 whitespace-normal break-words">
               {calculation.modelName} · Gr. {calculation.effectiveGrade}
-              {calculation.hasReplacedPart ? ' · Peça substituída' : ''}
+              {calculation.hasReplacedPart
+                ? (calculation.unknownPartsDeduction || 0) > 0
+                  ? ' · Peça desconhecida'
+                  : ' · Peça substituída'
+                : ''}
             </div>
           </div>
 
@@ -326,8 +358,12 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
                     <p className="font-medium text-slate-800 flex items-center gap-1">
                       Ajuste Grade {calculation.effectiveGrade}
                       {calculation.hasReplacedPart && (
-                        <span className="bg-amber-100 text-amber-900 text-[10px] font-bold px-1.5 py-0.2 rounded">
-                          Peça Substituída
+                        <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                          (calculation.unknownPartsDeduction || 0) > 0
+                            ? 'bg-red-100 text-red-900 border border-red-300'
+                            : 'bg-amber-100 text-amber-900'
+                        }`}>
+                          {(calculation.unknownPartsDeduction || 0) > 0 ? 'Peça Desconhecida' : 'Peça Substituída'}
                         </span>
                       )}
                     </p>
@@ -336,9 +372,22 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
                     {calculation.gradeDiscount > 0 ? `- ${formatCurrency(calculation.gradeDiscount)}` : 'R$ 0,00'}
                   </span>
                 </div>
+
+                {(calculation.unknownPartsDeduction || 0) > 0 && (
+                  <div className="flex justify-between items-center text-xs text-red-700 py-0.5">
+                    <span className="flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3 text-red-600" />
+                      Penalidade Peça Desconhecida ({calculation.unknownPartsCount || 1}x):
+                    </span>
+                    <span className="font-bold">- {formatCurrency(calculation.unknownPartsDeduction || 0)}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-xs text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg">
                   <span>Subtotal da Grade:</span>
-                  <span className="font-semibold text-slate-700">{formatCurrency(calculation.priceAfterGrade)}</span>
+                  <span className="font-semibold text-slate-700">
+                    {formatCurrency(calculation.suggestedPurchasePrice || (calculation.priceAfterGrade - (calculation.unknownPartsDeduction || 0)))}
+                  </span>
                 </div>
               </div>
 
@@ -410,11 +459,19 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
                 </div>
               </div>
 
-              {/* Alerta se peça substituída */}
+              {/* Alerta se peça substituída / desconhecida */}
               {calculation.hasReplacedPart && (
-                <div className="flex items-start gap-2 bg-amber-50 text-amber-900 p-3 rounded-xl text-xs border border-amber-200">
-                  <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
-                  <span>Aparelho possui peça substituída (Grade {calculation.effectiveGrade} selecionada).</span>
+                <div className={`flex items-start gap-2 p-3 rounded-xl text-xs border ${
+                  (calculation.unknownPartsDeduction || 0) > 0
+                    ? 'bg-red-50 text-red-900 border-red-200'
+                    : 'bg-amber-50 text-amber-900 border-amber-200'
+                }`}>
+                  <ShieldAlert className={`w-4 h-4 shrink-0 mt-0.5 ${(calculation.unknownPartsDeduction || 0) > 0 ? 'text-red-600' : 'text-amber-600'}`} />
+                  <span>
+                    {(calculation.unknownPartsDeduction || 0) > 0
+                      ? `Grade C forçada e penalidade de ${formatCurrency(calculation.unknownPartsDeduction || 0)} aplicada devido a aviso de peça desconhecida.`
+                      : `Aparelho possui peça substituída genuína (Grade ${calculation.effectiveGrade} selecionada).`}
+                  </span>
                 </div>
               )}
 

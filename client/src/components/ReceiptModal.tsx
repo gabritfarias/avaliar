@@ -94,11 +94,16 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ evaluation, onClose 
             </div>
 
             {evaluation.hasReplacedPart && (
-              <div className="mt-3 flex items-center space-x-2 text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 p-2.5 rounded-lg">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+              <div className={`mt-3 flex items-center space-x-2 text-xs font-medium p-2.5 rounded-lg border ${
+                (evaluation.unknownPartsDeduction || 0) > 0
+                  ? 'text-red-800 bg-red-50 border-red-200'
+                  : 'text-amber-800 bg-amber-50 border-amber-200'
+              }`}>
+                <AlertTriangle className={`w-4 h-4 shrink-0 ${(evaluation.unknownPartsDeduction || 0) > 0 ? 'text-red-600' : 'text-amber-600'}`} />
                 <span>
-                  Aparelho possui peça substituída
-                  {evaluation.replacedComponents ? ` (${evaluation.replacedComponents})` : ''}
+                  {(evaluation.unknownPartsDeduction || 0) > 0
+                    ? `Aviso de Peça Desconhecida (Grade C forçada)${evaluation.replacedComponents ? `: ${evaluation.replacedComponents}` : ''}`
+                    : `Aparelho possui peça substituída${evaluation.replacedComponents ? ` (${evaluation.replacedComponents})` : ''}`}
                 </span>
               </div>
             )}
@@ -122,10 +127,17 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ evaluation, onClose 
                 </span>
               </div>
 
+              {(evaluation.unknownPartsDeduction || 0) > 0 && (
+                <div className="flex justify-between items-center text-red-600">
+                  <span>Penalidade Peça Desconhecida ({evaluation.unknownPartsCount || 1}x):</span>
+                  <span className="font-semibold">- {formatCurrency(evaluation.unknownPartsDeduction || 0)}</span>
+                </div>
+              )}
+
               <div className="flex justify-between items-center text-slate-600 font-medium pt-1 border-t border-dashed border-slate-200">
                 <span>Subtotal da Grade:</span>
                 <span className="text-slate-900">
-                  {formatCurrency(evaluation.basePriceGradeA - evaluation.gradeDiscount)}
+                  {formatCurrency(evaluation.basePriceGradeA - evaluation.gradeDiscount - (evaluation.unknownPartsDeduction || 0))}
                 </span>
               </div>
 

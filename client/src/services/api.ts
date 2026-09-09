@@ -133,6 +133,7 @@ export async function calculateEvaluation(data: {
   grade: 'A' | 'B' | 'C';
   hasReplacedPart: boolean;
   replacedComponents?: string[];
+  replacedDetails?: Array<{ name: string; status: 'GENUINE' | 'UNKNOWN' }>;
   partIds: number[];
 }): Promise<CalculationBreakdown> {
   const res = await fetch(`${API_BASE}/evaluations/calculate`, {
@@ -152,6 +153,7 @@ export async function saveEvaluation(data: {
   grade: 'A' | 'B' | 'C';
   hasReplacedPart: boolean;
   replacedComponents?: string[];
+  replacedDetails?: Array<{ name: string; status: 'GENUINE' | 'UNKNOWN' }>;
   partIds: number[];
   customerName?: string;
   notes?: string;

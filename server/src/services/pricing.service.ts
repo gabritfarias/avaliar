@@ -1,10 +1,18 @@
 import { prisma } from '../prisma';
 
+export type ReplacedPartStatus = 'GENUINE' | 'UNKNOWN';
+
+export interface ReplacedComponentDetail {
+  name: string;
+  status: ReplacedPartStatus;
+}
+
 export interface CalculationInput {
   variantId: number;
   grade: 'A' | 'B' | 'C';
   hasReplacedPart: boolean;
   replacedComponents?: string[];
+  replacedDetails?: ReplacedComponentDetail[];
   partIds?: number[];
 }
 
@@ -24,6 +32,10 @@ export interface CalculationBreakdown {
   effectiveGrade: 'A' | 'B' | 'C';
   hasReplacedPart: boolean;
   replacedComponents?: string[];
+  replacedDetails?: ReplacedComponentDetail[];
+  replacedComponentsStatus?: string | null;
+  unknownPartsCount: number;
+  unknownPartsDeduction: number;
   forcedGradeC: boolean;
   gradeDiscountBSetting: number;
   gradeDiscountCSetting: number;
@@ -62,13 +74,54 @@ export async function calculateEvaluation(input: CalculationInput): Promise<Calc
   // 2. Fetch Grade Settings
   const { discountB, discountC } = await getGradeSettings();
 
-  // 3. Regra de Negócio: Peça substituída permite escolha manual entre Grade B ou C (não força Grade C)
-  // Caso venha com A e peça substituída, normaliza para B
+  // 3. Processar detalhes de peças substituídas (Genuína vs. Desconhecida)
+  let unknownPartsCount = 0;
+  let replacedDetails: ReplacedComponentDetail[] = [];
+
+  if (hasReplacedPart) {
+    if (input.replacedDetails && input.replacedDetails.length > 0) {
+      replacedDetails = input.replacedDetails;
+      unknownPartsCount = replacedDetails.filter((d) => d.status === 'UNKNOWN').length;
+    } else if (input.replacedComponents && input.replacedComponents.length > 0) {
+      // Compatibilidade: inferir pelo texto
+      replacedDetails = input.replacedComponents.map((item) => {
+        const isUnknown = item.toLowerCase().includes('desconhecid') || item.toUpperCase().includes('UNKNOWN');
+        const cleanName = item.replace(/\s*\((Desconhecida|Genuína Apple|Desconhecido|Genuíno)\)/i, '').trim();
+        return {
+          name: cleanName,
+          status: isUnknown ? 'UNKNOWN' : 'GENUINE',
+        };
+      });
+      unknownPartsCount = replacedDetails.filter((d) => d.status === 'UNKNOWN').length;
+    }
+  }
+
+  const hasUnknownPart = hasReplacedPart && unknownPartsCount > 0;
+
+  // Determinar status agregado
+  let replacedComponentsStatus: string | null = null;
+  if (hasReplacedPart) {
+    if (unknownPartsCount > 0 && replacedDetails.some((d) => d.status === 'GENUINE')) {
+      replacedComponentsStatus = 'Misto';
+    } else if (unknownPartsCount > 0) {
+      replacedComponentsStatus = 'Desconhecida';
+    } else {
+      replacedComponentsStatus = 'Genuína Apple';
+    }
+  }
+
+  // Regra de Negócio:
+  // - Peça Desconhecida: Trava automaticamente em Grade C
+  // - Peça Genuína Apple: Permite escolha manual livre entre Grade B e Grade C (bloqueia Grade A)
   let effectiveGrade: 'A' | 'B' | 'C' = input.grade;
-  if (hasReplacedPart && effectiveGrade === 'A') {
+  let forcedGradeC = false;
+
+  if (hasUnknownPart) {
+    effectiveGrade = 'C';
+    forcedGradeC = true;
+  } else if (hasReplacedPart && effectiveGrade === 'A') {
     effectiveGrade = 'B';
   }
-  const forcedGradeC = false;
 
   // 4. Determina o desconto da grade
   let gradeDiscount = 0;
@@ -78,10 +131,18 @@ export async function calculateEvaluation(input: CalculationInput): Promise<Calc
     gradeDiscount = discountC;
   }
 
+  // Penalidade de Peça Desconhecida:
+  // - 1 peça desconhecida: R$ 200 extra
+  // - 2 ou mais peças desconhecidas: R$ 300 extra
+  let unknownPartsDeduction = 0;
+  if (hasUnknownPart) {
+    unknownPartsDeduction = unknownPartsCount >= 2 ? 300 : 200;
+  }
+
   const basePriceGradeA = variant.priceGradeA;
   const priceAfterGrade = Math.max(0, basePriceGradeA - gradeDiscount);
 
-  // 5. Abatimento de peças selecionadas
+  // 5. Abatimento de peças selecionadas (reparos da loja)
   let partsList: PartDeduction[] = [];
   if (partIds.length > 0) {
     const partsInDb = await prisma.part.findMany({
@@ -100,14 +161,22 @@ export async function calculateEvaluation(input: CalculationInput): Promise<Calc
 
   const totalPartsDeduction = partsList.reduce((acc, curr) => acc + curr.cost, 0);
 
-  // 6. Fórmula Geral: valor_final = preço_grade_selecionada - soma(custos_das_peças_marcadas)
-  const finalValue = Math.max(0, priceAfterGrade - totalPartsDeduction);
+  // 6. Base de referência após grade e penalidade de peça desconhecida
+  const baseAfterUnknownDeduction = Math.max(0, priceAfterGrade - unknownPartsDeduction);
 
-  // 7. Valor Sugerido para Compra: valor de referência de tabela do aparelho na grade (independente de peças)
-  const suggestedPurchasePrice = priceAfterGrade;
+  // 7. Valor Final pago ao cliente: desconta grade, peça desconhecida e peças avariadas da loja
+  const finalValue = Math.max(0, baseAfterUnknownDeduction - totalPartsDeduction);
 
-  // 8. Valor Sugerido para Venda: valor base com grade acrescido de R$ 500,00 de margem (independente de peças)
-  const suggestedSellingPrice = priceAfterGrade + 500;
+  // 8. Valor Sugerido para Compra: reflete Grade C e peças desconhecidas (sem afetar reparos da loja)
+  const suggestedPurchasePrice = baseAfterUnknownDeduction;
+
+  // 9. Valor Sugerido para Venda: recalculado sobre a base ajustada com margem de R$ 500
+  const suggestedSellingPrice = baseAfterUnknownDeduction + 500;
+
+  // Montar lista legível de replacedComponents com indicação do status
+  const formattedReplacedComponents = replacedDetails.length > 0
+    ? replacedDetails.map((d) => `${d.name} (${d.status === 'UNKNOWN' ? 'Desconhecida' : 'Genuína Apple'})`)
+    : input.replacedComponents || [];
 
   return {
     variantId: variant.id,
@@ -118,7 +187,11 @@ export async function calculateEvaluation(input: CalculationInput): Promise<Calc
     requestedGrade: input.grade,
     effectiveGrade,
     hasReplacedPart,
-    replacedComponents: input.replacedComponents || [],
+    replacedComponents: formattedReplacedComponents,
+    replacedDetails,
+    replacedComponentsStatus,
+    unknownPartsCount,
+    unknownPartsDeduction,
     forcedGradeC,
     gradeDiscountBSetting: discountB,
     gradeDiscountCSetting: discountC,

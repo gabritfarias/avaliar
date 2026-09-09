@@ -7,7 +7,7 @@ const router = Router();
 // POST /api/evaluations/calculate - Real-time calculation without saving
 router.post('/calculate', async (req: Request, res: Response) => {
   try {
-    const { variantId, grade, hasReplacedPart, replacedComponents, partIds } = req.body;
+    const { variantId, grade, hasReplacedPart, replacedComponents, replacedDetails, partIds } = req.body;
 
     if (!variantId) {
       return res.status(400).json({ error: 'ID da variante/capacidade é obrigatório.' });
@@ -26,6 +26,12 @@ router.post('/calculate', async (req: Request, res: Response) => {
         : typeof replacedComponents === 'string' && replacedComponents
         ? [replacedComponents]
         : [],
+      replacedDetails: Array.isArray(replacedDetails)
+        ? replacedDetails.map((d: any) => ({
+            name: String(d.name),
+            status: d.status === 'UNKNOWN' ? 'UNKNOWN' : 'GENUINE',
+          }))
+        : undefined,
       partIds: Array.isArray(partIds) ? partIds.map(Number) : [],
     });
 
@@ -38,7 +44,7 @@ router.post('/calculate', async (req: Request, res: Response) => {
 // POST /api/evaluations - Save evaluation in database
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { variantId, grade, hasReplacedPart, replacedComponents, partIds, customerName, notes } = req.body;
+    const { variantId, grade, hasReplacedPart, replacedComponents, replacedDetails, partIds, customerName, notes } = req.body;
 
     if (!variantId) {
       return res.status(400).json({ error: 'ID da variante/capacidade é obrigatório.' });
@@ -58,10 +64,18 @@ router.post('/', async (req: Request, res: Response) => {
         : typeof replacedComponents === 'string' && replacedComponents
         ? [replacedComponents]
         : [],
+      replacedDetails: Array.isArray(replacedDetails)
+        ? replacedDetails.map((d: any) => ({
+            name: String(d.name),
+            status: d.status === 'UNKNOWN' ? 'UNKNOWN' : 'GENUINE',
+          }))
+        : undefined,
       partIds: Array.isArray(partIds) ? partIds.map(Number) : [],
     });
 
-    const formattedReplacedComponents = Array.isArray(replacedComponents)
+    const formattedReplacedComponents = breakdown.replacedComponents && breakdown.replacedComponents.length > 0
+      ? breakdown.replacedComponents.join(', ')
+      : Array.isArray(replacedComponents)
       ? replacedComponents.filter(Boolean).join(', ')
       : typeof replacedComponents === 'string' && replacedComponents.trim()
       ? replacedComponents.trim()
@@ -76,6 +90,9 @@ router.post('/', async (req: Request, res: Response) => {
         grade: breakdown.effectiveGrade,
         hasReplacedPart: breakdown.hasReplacedPart,
         replacedComponents: breakdown.hasReplacedPart ? formattedReplacedComponents : null,
+        replacedComponentsStatus: breakdown.hasReplacedPart ? breakdown.replacedComponentsStatus : null,
+        unknownPartsCount: breakdown.hasReplacedPart ? breakdown.unknownPartsCount : 0,
+        unknownPartsDeduction: breakdown.hasReplacedPart ? breakdown.unknownPartsDeduction : 0,
         basePriceGradeA: breakdown.basePriceGradeA,
         gradeDiscount: breakdown.gradeDiscount,
         totalPartsDeduction: breakdown.totalPartsDeduction,

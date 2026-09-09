@@ -186,9 +186,15 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
                     {ev.hasReplacedPart && (
                       <span
                         title={ev.replacedComponents ? `Substituída(s): ${ev.replacedComponents}` : 'Peça substituída'}
-                        className="bg-amber-50 text-amber-800 border border-amber-300 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5"
+                        className={`border text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+                          (ev.unknownPartsDeduction || 0) > 0
+                            ? 'bg-red-50 text-red-800 border-red-300'
+                            : 'bg-amber-50 text-amber-800 border-amber-300'
+                        }`}
                       >
-                        <AlertTriangle className="w-2.5 h-2.5" /> Peça Substituída{ev.replacedComponents ? ` (${ev.replacedComponents})` : ''}
+                        <AlertTriangle className={`w-2.5 h-2.5 ${(ev.unknownPartsDeduction || 0) > 0 ? 'text-red-600' : 'text-amber-600'}`} />
+                        {(ev.unknownPartsDeduction || 0) > 0 ? 'Peça Desconhecida' : 'Peça Substituída'}
+                        {ev.replacedComponents ? ` (${ev.replacedComponents})` : ''}
                       </span>
                     )}
                   </div>
@@ -354,10 +360,15 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
                           {ev.hasReplacedPart && (
                             <span
                               title={ev.replacedComponents ? `Substituída(s): ${ev.replacedComponents}` : 'Aparelho possui peça substituída'}
-                              className="bg-amber-50 text-amber-800 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1"
+                              className={`border text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 ${
+                                (ev.unknownPartsDeduction || 0) > 0
+                                  ? 'bg-red-50 text-red-800 border-red-300'
+                                  : 'bg-amber-50 text-amber-800 border-amber-300'
+                              }`}
                             >
-                              <AlertTriangle className="w-3 h-3 text-amber-600" />
-                              Peça Substituída{ev.replacedComponents ? ` (${ev.replacedComponents})` : ''}
+                              <AlertTriangle className={`w-3 h-3 ${(ev.unknownPartsDeduction || 0) > 0 ? 'text-red-600' : 'text-amber-600'}`} />
+                              {(ev.unknownPartsDeduction || 0) > 0 ? 'Peça Desconhecida' : 'Peça Substituída'}
+                              {ev.replacedComponents ? ` (${ev.replacedComponents})` : ''}
                             </span>
                           )}
                         </div>

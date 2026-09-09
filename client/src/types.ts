@@ -30,6 +30,13 @@ export interface GradeSettings {
   raw?: Array<{ id: number; key: string; value: number; description?: string }>;
 }
 
+export type ReplacedPartStatus = 'GENUINE' | 'UNKNOWN';
+
+export interface ReplacedComponentDetail {
+  name: string;
+  status: ReplacedPartStatus;
+}
+
 export interface CalculationBreakdown {
   variantId: number;
   modelId: number;
@@ -40,6 +47,10 @@ export interface CalculationBreakdown {
   effectiveGrade: 'A' | 'B' | 'C';
   hasReplacedPart: boolean;
   replacedComponents?: string[];
+  replacedDetails?: ReplacedComponentDetail[];
+  replacedComponentsStatus?: string | null;
+  unknownPartsCount?: number;
+  unknownPartsDeduction?: number;
   forcedGradeC?: boolean;
   gradeDiscountBSetting: number;
   gradeDiscountCSetting: number;
@@ -69,6 +80,9 @@ export interface Evaluation {
   grade: 'A' | 'B' | 'C';
   hasReplacedPart: boolean;
   replacedComponents?: string | null;
+  replacedComponentsStatus?: string | null;
+  unknownPartsCount?: number | null;
+  unknownPartsDeduction?: number | null;
   basePriceGradeA: number;
   gradeDiscount: number;
   totalPartsDeduction: number;
