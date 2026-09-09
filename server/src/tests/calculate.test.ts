@@ -90,6 +90,7 @@ async function runTests() {
     assert(resParts.parts.length === 2, 'Deve ter 2 peças abatidas');
     assert(resParts.totalPartsDeduction === expectedPartsCost, `Custo total das peças deve ser ${expectedPartsCost}`);
     assert(resParts.finalValue === var128.priceGradeA - expectedPartsCost, `Valor final deve ser ${var128.priceGradeA - expectedPartsCost}`);
+    assert(resParts.suggestedSellingPrice === var128.priceGradeA + 500, 'Valor sugerido de venda NÃO deve ser afetado pelo desconto de peças');
 
     // Teste 6: Persistência no Banco de Dados
     const savedEval = await prisma.evaluation.create({

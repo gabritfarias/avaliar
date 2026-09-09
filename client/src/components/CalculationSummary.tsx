@@ -176,7 +176,7 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
             </div>
             <div className="text-right">
               <span className="text-xl font-black text-emerald-400">
-                {formatCurrency(calculation.suggestedSellingPrice || (calculation.finalValue + 500))}
+                {formatCurrency(calculation.suggestedSellingPrice || (calculation.priceAfterGrade + 500))}
               </span>
             </div>
           </div>
@@ -393,7 +393,7 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
                 </div>
                 <div className="text-right">
                   <span className="text-xl font-black text-emerald-400">
-                    {formatCurrency(calculation.suggestedSellingPrice || (calculation.finalValue + 500))}
+                    {formatCurrency(calculation.suggestedSellingPrice || (calculation.priceAfterGrade + 500))}
                   </span>
                 </div>
               </div>

@@ -232,7 +232,7 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
                         Sugerido Venda
                       </span>
                       <span className="text-base sm:text-lg font-black text-slate-900 block leading-tight">
-                        {formatCurrency(ev.suggestedSellingPrice || (ev.finalValue + 500))}
+                        {formatCurrency(ev.suggestedSellingPrice || (ev.basePriceGradeA - ev.gradeDiscount + 500))}
                       </span>
                     </div>
                   </div>
@@ -386,7 +386,7 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
                       {/* Valor Sugerido para Venda */}
                       <td className="p-4 text-right whitespace-nowrap">
                         <span className="text-base font-extrabold text-slate-900 block">
-                          {formatCurrency(ev.suggestedSellingPrice || (ev.finalValue + 500))}
+                          {formatCurrency(ev.suggestedSellingPrice || (ev.basePriceGradeA - ev.gradeDiscount + 500))}
                         </span>
                         <span className="text-[10px] font-semibold text-emerald-600 block">+R$ 500,00</span>
                       </td>

@@ -96,8 +96,8 @@ export async function calculateEvaluation(input: CalculationInput): Promise<Calc
   // 6. Fórmula Geral: valor_final = preço_grade_selecionada - soma(custos_das_peças_marcadas)
   const finalValue = Math.max(0, priceAfterGrade - totalPartsDeduction);
 
-  // 7. Valor Sugerido para Venda: valor final acrescido de R$ 500,00
-  const suggestedSellingPrice = finalValue + 500;
+  // 7. Valor Sugerido para Venda: valor base com grade acrescido de R$ 500,00 de margem (independente de peças)
+  const suggestedSellingPrice = priceAfterGrade + 500;
 
   return {
     variantId: variant.id,

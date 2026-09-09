@@ -186,7 +186,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ evaluation, onClose 
             </div>
             <div className="text-right">
               <span className="text-2xl font-black text-emerald-400">
-                {formatCurrency(evaluation.suggestedSellingPrice || (evaluation.finalValue + 500))}
+                {formatCurrency(evaluation.suggestedSellingPrice || (evaluation.basePriceGradeA - evaluation.gradeDiscount + 500))}
               </span>
             </div>
           </div>
