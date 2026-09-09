@@ -88,19 +88,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
             {/* Campo Usuário */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-300">
+              <label htmlFor="username" className="block text-xs font-semibold text-slate-300">
                 Usuário
               </label>
               <div className="relative">
                 <UserIcon className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
                 <input
+                  id="username"
+                  name="username"
                   type="text"
                   required
+                  autoComplete="username"
                   autoCapitalize="none"
                   autoCorrect="off"
+                  spellCheck={false}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="ex: administrador ou phonemix_centro"

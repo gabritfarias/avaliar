@@ -19,9 +19,24 @@ router.post('/login', async (req, res) => {
 
     const normalizedIdentifier = String(identifier).trim().toLowerCase();
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { email: normalizedIdentifier },
     });
+
+    // Se não encontrou e for 'admin' ou começar com 'admin@', buscar 'administrador'
+    if (!user && (normalizedIdentifier === 'admin' || normalizedIdentifier.startsWith('admin@'))) {
+      user = await prisma.user.findUnique({
+        where: { email: 'administrador' },
+      });
+    }
+
+    // Se foi digitado como e-mail (ex: administrador@qualquer.com ou loja@...)
+    if (!user && normalizedIdentifier.includes('@')) {
+      const usernamePart = normalizedIdentifier.split('@')[0];
+      user = await prisma.user.findUnique({
+        where: { email: usernamePart },
+      });
+    }
 
     if (!user) {
       return res.status(401).json({ error: 'Credenciais inválidas. Verifique o usuário e a senha.' });

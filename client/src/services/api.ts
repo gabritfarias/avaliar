@@ -59,11 +59,16 @@ function handleUnauthorized(res: Response) {
 
 // ================= AUTH API =================
 
-export async function login(credentials: { email: string; password: string }): Promise<{ token: string; user: User }> {
+export async function login(credentials: { email?: string; username?: string; password: string }): Promise<{ token: string; user: User }> {
+  const payload = {
+    email: credentials.email || credentials.username,
+    username: credentials.username || credentials.email,
+    password: credentials.password,
+  };
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(credentials),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
