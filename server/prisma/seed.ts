@@ -238,7 +238,7 @@ const modelsData: ModelData[] = [
 async function main() {
   console.log('Seeding database...');
 
-  // 0. Seed Users (Master & Store)
+  // 0. Seed Users (Master & Lojas) - Apenas se não existirem
   const masterPassword = await bcrypt.hash('Fa21639100', 10);
   const storePassword = await bcrypt.hash('123', 10);
 
@@ -290,126 +290,115 @@ async function main() {
   const createdUsers: Record<string, any> = {};
 
   for (const acc of accounts) {
-    const u = await prisma.user.upsert({
+    const existing = await prisma.user.findUnique({
       where: { email: acc.login },
-      update: {
-        name: acc.name,
-        role: acc.role,
-        password: acc.password,
-      },
-      create: {
-        email: acc.login,
-        name: acc.name,
-        role: acc.role,
-        password: acc.password,
-      },
     });
-    createdUsers[acc.login] = u;
+    if (!existing) {
+      const u = await prisma.user.create({
+        data: {
+          email: acc.login,
+          name: acc.name,
+          role: acc.role,
+          password: acc.password,
+        },
+      });
+      createdUsers[acc.login] = u;
+      console.log(`[Seed] Usuário cadastrado: ${acc.login} (${acc.name})`);
+    } else {
+      createdUsers[acc.login] = existing;
+      console.log(`[Seed] Usuário já existente: ${acc.login} (mantido intacto)`);
+    }
   }
 
-  // Vincular avaliações legadas ou com storeId antigo para a Phonemix Centro
-  const validUserIds = Object.values(createdUsers).map((u: any) => u.id);
-  await prisma.evaluation.updateMany({
-    where: {
-      OR: [
-        { storeId: null },
-        { storeId: { notIn: validUserIds } },
-      ],
-    },
-    data: { storeId: createdUsers['phonemix_centro'].id },
-  });
+  // Vincular apenas avaliações órfãs (storeId nulo) para a Phonemix Centro
+  const defaultStore = createdUsers['phonemix_centro'] || await prisma.user.findUnique({ where: { email: 'phonemix_centro' } });
+  if (defaultStore) {
+    const unlinked = await prisma.evaluation.updateMany({
+      where: { storeId: null },
+      data: { storeId: defaultStore.id },
+    });
+    if (unlinked.count > 0) {
+      console.log(`[Seed] ${unlinked.count} avaliações sem loja foram vinculadas à Phonemix Centro.`);
+    }
+  }
 
-  // Remover quaisquer usuários antigos que não estejam na lista oficial
-  const activeLogins = accounts.map((a) => a.login);
-  const deletedUsers = await prisma.user.deleteMany({
-    where: {
-      email: { notIn: activeLogins },
-    },
-  });
+  // 1. Seed Grade Settings (Apenas se não existirem - preserva valores alterados pelo Administrador)
+  const existingGradeB = await prisma.gradeSetting.findUnique({ where: { key: 'discount_grade_b' } });
+  if (!existingGradeB) {
+    await prisma.gradeSetting.create({
+      data: {
+        key: 'discount_grade_b',
+        value: 100,
+        description: 'Desconto aplicado para aparelhos Grade B (R$)',
+      },
+    });
+    console.log('[Seed] Configuração discount_grade_b inicializada com R$ 100.');
+  } else {
+    console.log(`[Seed] Configuração discount_grade_b já existente (R$ ${existingGradeB.value}). Preservada.`);
+  }
 
-  console.log(`Users seeded (1 Master: administrador, 6 Lojas oficiais). Usuários antigos removidos: ${deletedUsers.count}.`);
-
-  // 1. Seed Grade Settings
-  await prisma.gradeSetting.upsert({
-    where: { key: 'discount_grade_b' },
-    update: { value: 100 },
-    create: {
-      key: 'discount_grade_b',
-      value: 100,
-      description: 'Desconto aplicado para aparelhos Grade B (R$)',
-    },
-  });
-
-  await prisma.gradeSetting.upsert({
-    where: { key: 'discount_grade_c' },
-    update: { value: 200 },
-    create: {
-      key: 'discount_grade_c',
-      value: 200,
-      description: 'Desconto aplicado para aparelhos Grade C (R$)',
-    },
-  });
-
-  console.log('Grade settings seeded.');
+  const existingGradeC = await prisma.gradeSetting.findUnique({ where: { key: 'discount_grade_c' } });
+  if (!existingGradeC) {
+    await prisma.gradeSetting.create({
+      data: {
+        key: 'discount_grade_c',
+        value: 200,
+        description: 'Desconto aplicado para aparelhos Grade C (R$)',
+      },
+    });
+    console.log('[Seed] Configuração discount_grade_c inicializada com R$ 200.');
+  } else {
+    console.log(`[Seed] Configuração discount_grade_c já existente (R$ ${existingGradeC.value}). Preservada.`);
+  }
 
   // 2. Seed Models, Variants, and Parts
-  for (const m of modelsData) {
-    const model = await prisma.model.upsert({
-      where: { name: m.name },
-      update: { order: m.order },
-      create: {
-        name: m.name,
-        order: m.order,
-      },
-    });
+  // Regra crítica: se já existirem modelos no banco, NÃO alterar nada para preservar preços e alterações do Administrador!
+  const modelsCount = await prisma.model.count();
+  if (modelsCount > 0) {
+    console.log(`[Seed] Catálogo já inicializado com ${modelsCount} modelos. NENHUM modelo, preço ou peça foi modificado para preservar as alterações do Administrador.`);
+  } else {
+    console.log(`[Seed] Banco de modelos vazio. Inicializando catálogo padrão com ${modelsData.length} modelos...`);
+    for (const m of modelsData) {
+      const model = await prisma.model.create({
+        data: {
+          name: m.name,
+          order: m.order,
+        },
+      });
 
-    // Variants
-    for (const v of m.variants) {
-      await prisma.variant.upsert({
-        where: {
-          modelId_capacity: {
+      // Variants
+      for (const v of m.variants) {
+        await prisma.variant.create({
+          data: {
             modelId: model.id,
             capacity: v.capacity,
+            priceGradeA: v.priceGradeA,
           },
-        },
-        update: { priceGradeA: v.priceGradeA },
-        create: {
-          modelId: model.id,
-          capacity: v.capacity,
-          priceGradeA: v.priceGradeA,
-        },
-      });
-    }
+        });
+      }
 
-    // Common Parts
-    const partsToSeed = [
-      { name: 'Bateria', cost: m.partCosts.battery },
-      { name: 'Tela / Display', cost: m.partCosts.screen },
-      { name: 'Câmera Traseira', cost: m.partCosts.rearCamera },
-      { name: 'Conector de Carga', cost: m.partCosts.chargingPort },
-      { name: 'Tampa Traseira (Vidro)', cost: m.partCosts.backGlass },
-      { name: 'Face ID / Câmera Frontal', cost: m.partCosts.faceId },
-    ];
+      // Common Parts
+      const partsToSeed = [
+        { name: 'Bateria', cost: m.partCosts.battery },
+        { name: 'Tela / Display', cost: m.partCosts.screen },
+        { name: 'Câmera Traseira', cost: m.partCosts.rearCamera },
+        { name: 'Conector de Carga', cost: m.partCosts.chargingPort },
+        { name: 'Tampa Traseira (Vidro)', cost: m.partCosts.backGlass },
+        { name: 'Face ID / Câmera Frontal', cost: m.partCosts.faceId },
+      ];
 
-    for (const p of partsToSeed) {
-      await prisma.part.upsert({
-        where: {
-          modelId_name: {
+      for (const p of partsToSeed) {
+        await prisma.part.create({
+          data: {
             modelId: model.id,
             name: p.name,
+            cost: p.cost,
           },
-        },
-        update: { cost: p.cost },
-        create: {
-          modelId: model.id,
-          name: p.name,
-          cost: p.cost,
-        },
-      });
+        });
+      }
     }
+    console.log(`[Seed] Catálogo padrão criado com sucesso (${modelsData.length} modelos com variantes e peças).`);
   }
-
-  console.log(`Successfully seeded ${modelsData.length} iPhone models with variants and parts!`);
 }
 
 main()
