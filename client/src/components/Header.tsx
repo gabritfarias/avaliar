@@ -1,13 +1,11 @@
 import React from 'react';
-import { Smartphone, History, Settings, ShieldCheck } from 'lucide-react';
+import { Smartphone, History, Settings, ShieldCheck, HelpCircle } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'avaliacao' | 'historico' | 'admin';
-  setActiveTab: (tab: 'avaliacao' | 'historico' | 'admin') => void;
+  activeTab: 'avaliacao' | 'historico' | 'admin' | 'ajuda';
+  setActiveTab: (tab: 'avaliacao' | 'historico' | 'admin' | 'ajuda') => void;
   evaluationCount?: number;
 }
-
-
 
 export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, evaluationCount = 0 }) => {
   return (
@@ -83,6 +81,18 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, evaluat
                 <Settings className="w-4 h-4" />
                 <span>Configurações & Preços</span>
               </button>
+
+              <button
+                onClick={() => setActiveTab('ajuda')}
+                className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-sm font-medium transition cursor-pointer ${
+                  activeTab === 'ajuda'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md font-bold'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span>Ajuda</span>
+              </button>
             </nav>
           </div>
         </div>
@@ -94,7 +104,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, evaluat
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         className="md:hidden fixed bottom-0 left-0 right-0 z-20 bg-slate-900 backdrop-blur-md border-t border-slate-800 shadow-2xl"
       >
-        <div className="grid grid-cols-3 h-14">
+        <div className="grid grid-cols-4 h-14">
           <button
             onClick={() => setActiveTab('avaliacao')}
             className={`flex flex-col items-center justify-center min-h-[44px] transition-all cursor-pointer select-none active:scale-95 ${
@@ -136,6 +146,18 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, evaluat
           >
             <Settings className="w-5 h-5 mb-0.5" />
             <span className="text-[11px] leading-tight">Ajustes</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ajuda')}
+            className={`flex flex-col items-center justify-center min-h-[44px] transition-all cursor-pointer select-none active:scale-95 ${
+              activeTab === 'ajuda'
+                ? 'text-emerald-400 font-bold'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <HelpCircle className="w-5 h-5 mb-0.5" />
+            <span className="text-[11px] leading-tight">Ajuda</span>
           </button>
         </div>
       </nav>

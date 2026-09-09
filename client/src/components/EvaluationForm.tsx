@@ -543,7 +543,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
                                     : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                                 }`}
                               >
-                                Genuína
+                                Genuína Apple
                               </button>
 
                               <button

@@ -5,11 +5,12 @@ import { Header } from './components/Header';
 import { EvaluationForm } from './components/EvaluationForm';
 import { AdminPricing } from './components/AdminPricing';
 import { EvaluationHistory } from './components/EvaluationHistory';
+import { HelpPage } from './components/HelpPage';
 import { UpdatePrompt } from './components/UpdatePrompt';
 import { Smartphone, Database, RefreshCw, AlertCircle } from 'lucide-react';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'avaliacao' | 'historico' | 'admin'>('avaliacao');
+  const [activeTab, setActiveTab] = useState<'avaliacao' | 'historico' | 'admin' | 'ajuda'>('avaliacao');
   const [models, setModels] = useState<Model[]>([]);
   const [settings, setSettings] = useState<GradeSettings>({ discountB: 100, discountC: 200 });
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
@@ -96,6 +97,10 @@ export function App() {
                 settings={settings}
                 onRefreshData={loadAllData}
               />
+            )}
+
+            {activeTab === 'ajuda' && (
+              <HelpPage />
             )}
           </>
         )}
