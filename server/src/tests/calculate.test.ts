@@ -183,7 +183,7 @@ async function runTests() {
         data: {
           modelName: createdModel.name,
           capacityName: v.capacity,
-          variantId: null,
+          variantId: { set: null },
         },
       });
     }

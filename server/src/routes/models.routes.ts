@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../prisma';
+import { Prisma } from '@prisma/client';
 
 const router = Router();
 
@@ -56,7 +57,7 @@ router.post('/', async (req: Request, res: Response) => {
       where: {
         name: {
           equals: trimmedName,
-          mode: 'insensitive',
+          mode: Prisma.QueryMode.insensitive,
         },
       },
     });
@@ -228,7 +229,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
           data: {
             modelName: model.name,
             capacityName: variant.capacity,
-            variantId: null,
+            variantId: { set: null },
           },
         });
       }
