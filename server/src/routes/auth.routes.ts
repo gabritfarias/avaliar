@@ -10,25 +10,26 @@ const JWT_SECRET = process.env.JWT_SECRET || 'iavalia-super-secret-jwt-token-key
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, username, login: userLogin, password } = req.body;
+    const identifier = email || username || userLogin;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'E-mail e senha são obrigatórios.' });
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'Usuário e senha são obrigatórios.' });
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedIdentifier = String(identifier).trim().toLowerCase();
 
     const user = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
+      where: { email: normalizedIdentifier },
     });
 
     if (!user) {
-      return res.status(401).json({ error: 'Credenciais inválidas. Verifique o e-mail e a senha.' });
+      return res.status(401).json({ error: 'Credenciais inválidas. Verifique o usuário e a senha.' });
     }
 
     const isPasswordValid = await bcrypt.compare(String(password), user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Credenciais inválidas. Verifique o e-mail e a senha.' });
+      return res.status(401).json({ error: 'Credenciais inválidas. Verifique o usuário e a senha.' });
     }
 
     const payload: AuthPayload = {

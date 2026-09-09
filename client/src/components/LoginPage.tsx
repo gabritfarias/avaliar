@@ -5,7 +5,7 @@ import {
   Smartphone,
   ShieldCheck,
   Lock,
-  Mail,
+  User as UserIcon,
   Eye,
   EyeOff,
   LogIn,
@@ -17,7 +17,7 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
-  const [email, setEmail] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -25,15 +25,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password) {
-      setError('Por favor, preencha o e-mail e a senha.');
+    if (!username.trim() || !password) {
+      setError('Por favor, preencha o usuário e a senha.');
       return;
     }
 
     try {
       setIsLoading(true);
       setError(null);
-      const data = await login({ email: email.trim(), password });
+      const data = await login({ email: username.trim(), password });
       onLoginSuccess(data.user);
     } catch (err: any) {
       setError(err.message || 'Erro ao realizar login. Verifique suas credenciais.');
@@ -77,7 +77,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               Acesso ao Sistema
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Informe seu e-mail corporativo e senha de acesso.
+              Informe seu usuário e senha de acesso.
             </p>
           </div>
 
@@ -89,19 +89,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Campo E-mail */}
+            {/* Campo Usuário */}
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-slate-300">
-                E-mail
+                Usuário
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+                <UserIcon className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
                 <input
-                  type="email"
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ex: matriz@loja.com"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="ex: administrador ou phonemix_centro"
                   className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition"
                 />
               </div>

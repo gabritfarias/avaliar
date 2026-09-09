@@ -9,7 +9,7 @@ async function runTests() {
   const badLoginRes = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'master@sistema.com', password: 'wrongpassword' }),
+    body: JSON.stringify({ email: 'administrador', password: 'wrongpassword' }),
   });
   console.log('1. Login com credenciais incorretas status:', badLoginRes.status, '(Esperado: 401)');
   if (badLoginRes.status !== 401) throw new Error('Deveria ter retornado 401');
@@ -18,17 +18,17 @@ async function runTests() {
   const masterLoginRes = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'master@sistema.com', password: 'master123' }),
+    body: JSON.stringify({ email: 'administrador', password: 'Fa21639100' }),
   });
   const masterData: any = await masterLoginRes.json();
   console.log('2. Login Master status:', masterLoginRes.status, 'Role:', masterData.user?.role, '(Esperado: MASTER)');
   if (masterData.user?.role !== 'MASTER') throw new Error('Role do Master incorreta');
 
-  // 3. Teste de login Loja 1
+  // 3. Teste de login Loja 1 (phonemix_centro)
   const storeLoginRes = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'loja1@sistema.com', password: 'loja123' }),
+    body: JSON.stringify({ email: 'phonemix_centro', password: '123' }),
   });
   const storeData: any = await storeLoginRes.json();
   console.log('3. Login Loja 1 status:', storeLoginRes.status, 'Role:', storeData.user?.role, '(Esperado: STORE)');
@@ -80,11 +80,11 @@ async function runTests() {
     throw new Error('storeId não corresponde ao usuário da loja logada!');
   }
 
-  // 7. Teste de login Loja 2
+  // 7. Teste de login Loja 2 (phonemix_premio)
   const store2LoginRes = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'loja2@sistema.com', password: 'loja123' }),
+    body: JSON.stringify({ email: 'phonemix_premio', password: '123' }),
   });
   const store2Data: any = await store2LoginRes.json();
 

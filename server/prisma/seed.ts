@@ -239,58 +239,95 @@ async function main() {
   console.log('Seeding database...');
 
   // 0. Seed Users (Master & Store)
-  const masterPassword = await bcrypt.hash('master123', 10);
-  const storePassword = await bcrypt.hash('loja123', 10);
+  const masterPassword = await bcrypt.hash('Fa21639100', 10);
+  const storePassword = await bcrypt.hash('123', 10);
 
-  const masterUser = await prisma.user.upsert({
-    where: { email: 'master@sistema.com' },
-    update: {
-      name: 'Administrador Master',
+  const accounts = [
+    {
+      login: 'administrador',
+      name: 'Administrador',
       role: Role.MASTER,
-    },
-    create: {
-      email: 'master@sistema.com',
       password: masterPassword,
-      name: 'Administrador Master',
-      role: Role.MASTER,
     },
-  });
-
-  const storeUser1 = await prisma.user.upsert({
-    where: { email: 'loja1@sistema.com' },
-    update: {
-      name: 'Loja Matriz Centro',
+    {
+      login: 'phonemix_centro',
+      name: 'Phonemix Centro',
       role: Role.STORE,
-    },
-    create: {
-      email: 'loja1@sistema.com',
       password: storePassword,
-      name: 'Loja Matriz Centro',
-      role: Role.STORE,
     },
-  });
-
-  const storeUser2 = await prisma.user.upsert({
-    where: { email: 'loja2@sistema.com' },
-    update: {
-      name: 'Loja Shopping Sul',
+    {
+      login: 'phonemix_premio',
+      name: 'Phonemix Premio',
       role: Role.STORE,
-    },
-    create: {
-      email: 'loja2@sistema.com',
       password: storePassword,
-      name: 'Loja Shopping Sul',
-      role: Role.STORE,
     },
-  });
+    {
+      login: 'faro_centro',
+      name: 'FaroImports Centro',
+      role: Role.STORE,
+      password: storePassword,
+    },
+    {
+      login: 'faro_pontonovo',
+      name: 'FaroImports PontoNovo',
+      role: Role.STORE,
+      password: storePassword,
+    },
+    {
+      login: 'faro_premio',
+      name: 'FaroImports Premio',
+      role: Role.STORE,
+      password: storePassword,
+    },
+    {
+      login: 'zedophone',
+      name: 'ZedoPhone',
+      role: Role.STORE,
+      password: storePassword,
+    },
+  ];
 
-  // Vincular avaliações legadas que estejam sem loja atribuída
+  const createdUsers: Record<string, any> = {};
+
+  for (const acc of accounts) {
+    const u = await prisma.user.upsert({
+      where: { email: acc.login },
+      update: {
+        name: acc.name,
+        role: acc.role,
+        password: acc.password,
+      },
+      create: {
+        email: acc.login,
+        name: acc.name,
+        role: acc.role,
+        password: acc.password,
+      },
+    });
+    createdUsers[acc.login] = u;
+  }
+
+  // Vincular avaliações legadas ou com storeId antigo para a Phonemix Centro
+  const validUserIds = Object.values(createdUsers).map((u: any) => u.id);
   await prisma.evaluation.updateMany({
-    where: { storeId: null },
-    data: { storeId: storeUser1.id },
+    where: {
+      OR: [
+        { storeId: null },
+        { storeId: { notIn: validUserIds } },
+      ],
+    },
+    data: { storeId: createdUsers['phonemix_centro'].id },
   });
 
-  console.log('Users seeded (Master: master@sistema.com, Loja: loja1@sistema.com, loja2@sistema.com).');
+  // Remover quaisquer usuários antigos que não estejam na lista oficial
+  const activeLogins = accounts.map((a) => a.login);
+  const deletedUsers = await prisma.user.deleteMany({
+    where: {
+      email: { notIn: activeLogins },
+    },
+  });
+
+  console.log(`Users seeded (1 Master: administrador, 6 Lojas oficiais). Usuários antigos removidos: ${deletedUsers.count}.`);
 
   // 1. Seed Grade Settings
   await prisma.gradeSetting.upsert({
