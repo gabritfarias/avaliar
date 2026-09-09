@@ -1,7 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../prisma';
+import { authenticateToken, requireMaster } from '../middlewares/auth.middleware';
 
 const router = Router();
+
+// Todas as alterações de peças do catálogo exigem perfil Master
+router.use(authenticateToken);
+router.use(requireMaster);
 
 // POST /api/parts - Add a new part to a model
 router.post('/', async (req: Request, res: Response) => {

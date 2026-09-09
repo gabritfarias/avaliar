@@ -1,4 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -236,6 +237,60 @@ const modelsData: ModelData[] = [
 
 async function main() {
   console.log('Seeding database...');
+
+  // 0. Seed Users (Master & Store)
+  const masterPassword = await bcrypt.hash('master123', 10);
+  const storePassword = await bcrypt.hash('loja123', 10);
+
+  const masterUser = await prisma.user.upsert({
+    where: { email: 'master@sistema.com' },
+    update: {
+      name: 'Administrador Master',
+      role: Role.MASTER,
+    },
+    create: {
+      email: 'master@sistema.com',
+      password: masterPassword,
+      name: 'Administrador Master',
+      role: Role.MASTER,
+    },
+  });
+
+  const storeUser1 = await prisma.user.upsert({
+    where: { email: 'loja1@sistema.com' },
+    update: {
+      name: 'Loja Matriz Centro',
+      role: Role.STORE,
+    },
+    create: {
+      email: 'loja1@sistema.com',
+      password: storePassword,
+      name: 'Loja Matriz Centro',
+      role: Role.STORE,
+    },
+  });
+
+  const storeUser2 = await prisma.user.upsert({
+    where: { email: 'loja2@sistema.com' },
+    update: {
+      name: 'Loja Shopping Sul',
+      role: Role.STORE,
+    },
+    create: {
+      email: 'loja2@sistema.com',
+      password: storePassword,
+      name: 'Loja Shopping Sul',
+      role: Role.STORE,
+    },
+  });
+
+  // Vincular avaliações legadas que estejam sem loja atribuída
+  await prisma.evaluation.updateMany({
+    where: { storeId: null },
+    data: { storeId: storeUser1.id },
+  });
+
+  console.log('Users seeded (Master: master@sistema.com, Loja: loja1@sistema.com, loja2@sistema.com).');
 
   // 1. Seed Grade Settings
   await prisma.gradeSetting.upsert({

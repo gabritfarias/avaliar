@@ -1,8 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../prisma';
 import { getGradeSettings } from '../services/pricing.service';
+import { authenticateToken, requireMaster } from '../middlewares/auth.middleware';
 
 const router = Router();
+
+router.use(authenticateToken);
 
 // GET /api/settings
 router.get('/', async (_req: Request, res: Response) => {
@@ -14,8 +17,8 @@ router.get('/', async (_req: Request, res: Response) => {
   }
 });
 
-// PUT /api/settings
-router.put('/', async (req: Request, res: Response) => {
+// PUT /api/settings - Apenas Master pode alterar descontos de grade
+router.put('/', requireMaster, async (req: Request, res: Response) => {
   try {
     const { discountB, discountC } = req.body;
 

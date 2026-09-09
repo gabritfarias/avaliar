@@ -5,6 +5,7 @@ import modelsRouter from './routes/models.routes';
 import settingsRouter from './routes/settings.routes';
 import partsRouter from './routes/parts.routes';
 import evaluationsRouter from './routes/evaluations.routes';
+import authRouter from './routes/auth.routes';
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 // Routes (suporta tanto /rota quanto /api/rota)
+app.use(['/api/auth', '/auth'], authRouter);
 app.use(['/api/models', '/models'], modelsRouter);
 app.use(['/api/settings', '/settings'], settingsRouter);
 app.use(['/api/parts', '/parts'], partsRouter);

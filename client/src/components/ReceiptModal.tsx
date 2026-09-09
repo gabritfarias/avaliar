@@ -1,6 +1,6 @@
 import React from 'react';
 import { Evaluation } from '../types';
-import { X, Printer, CheckCircle, AlertTriangle, Smartphone, Calendar, User, FileText, TrendingUp, ShoppingBag } from 'lucide-react';
+import { X, Printer, CheckCircle, AlertTriangle, Smartphone, Calendar, User, FileText, TrendingUp, ShoppingBag, Store } from 'lucide-react';
 
 interface ReceiptModalProps {
   evaluation: Evaluation | null;
@@ -53,6 +53,12 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ evaluation, onClose 
             <div>
               <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Avaliação Nº</p>
               <p className="text-xl font-bold text-slate-900">#{evaluation.id.toString().padStart(5, '0')}</p>
+              {evaluation.store?.name && (
+                <p className="text-xs font-semibold text-emerald-700 flex items-center gap-1 mt-0.5">
+                  <Store className="w-3 h-3 text-emerald-600" />
+                  <span>{evaluation.store.name}</span>
+                </p>
+              )}
             </div>
             <div className="text-right">
               <div className="flex items-center space-x-1 text-slate-500 text-xs justify-end">

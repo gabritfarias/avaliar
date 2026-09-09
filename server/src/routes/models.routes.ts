@@ -1,8 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../prisma';
 import { Prisma } from '@prisma/client';
+import { authenticateToken, requireMaster } from '../middlewares/auth.middleware';
 
 const router = Router();
+
+// Exige autenticação para leitura e gerenciamento
+router.use(authenticateToken);
 
 // GET /api/models - List all models with variants and parts
 router.get('/', async (_req: Request, res: Response) => {
@@ -43,7 +47,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/models - Create a new model with variants and default parts
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', requireMaster, async (req: Request, res: Response) => {
   try {
     const { name, order, variants, createDefaultParts = true } = req.body;
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -128,7 +132,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // POST /api/models/:id/variants - Add a capacity variant to a model
-router.post('/:id/variants', async (req: Request, res: Response) => {
+router.post('/:id/variants', requireMaster, async (req: Request, res: Response) => {
   try {
     const modelId = Number(req.params.id);
     const { capacity, priceGradeA } = req.body;
@@ -160,7 +164,7 @@ router.post('/:id/variants', async (req: Request, res: Response) => {
 });
 
 // PUT /api/variants/:id - Update variant price or capacity
-router.put('/variants/:id', async (req: Request, res: Response) => {
+router.put('/variants/:id', requireMaster, async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     const { capacity, priceGradeA } = req.body;
@@ -193,7 +197,7 @@ router.put('/variants/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE /api/variants/:id - Delete a capacity variant
-router.delete('/variants/:id', async (req: Request, res: Response) => {
+router.delete('/variants/:id', requireMaster, async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     await prisma.variant.delete({
@@ -206,7 +210,7 @@ router.delete('/variants/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE /api/models/:id - Delete a model and its cascading variants/parts while preserving evaluation history
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', requireMaster, async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     const model = await prisma.model.findUnique({

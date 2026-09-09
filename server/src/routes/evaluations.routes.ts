@@ -1,11 +1,15 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { prisma } from '../prisma';
-import { calculateEvaluation, CalculationInput } from '../services/pricing.service';
+import { calculateEvaluation } from '../services/pricing.service';
+import { authenticateToken, AuthenticatedRequest } from '../middlewares/auth.middleware';
 
 const router = Router();
 
+// Todas as rotas de avaliação exigem autenticação
+router.use(authenticateToken);
+
 // POST /api/evaluations/calculate - Real-time calculation without saving
-router.post('/calculate', async (req: Request, res: Response) => {
+router.post('/calculate', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { variantId, grade, hasReplacedPart, replacedComponents, replacedDetails, partIds } = req.body;
 
@@ -41,8 +45,8 @@ router.post('/calculate', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/evaluations - Save evaluation in database
-router.post('/', async (req: Request, res: Response) => {
+// POST /api/evaluations - Save evaluation in database vinculada ao storeId da sessão
+router.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { variantId, grade, hasReplacedPart, replacedComponents, replacedDetails, partIds, customerName, notes } = req.body;
 
@@ -81,10 +85,14 @@ router.post('/', async (req: Request, res: Response) => {
       ? replacedComponents.trim()
       : null;
 
+    // Associa automaticamente a loja do usuário autenticado
+    const storeId = req.user?.id || null;
+
     // Salva no banco de dados com snapshots de valores
     const evaluation = await prisma.evaluation.create({
       data: {
         variantId: breakdown.variantId,
+        storeId,
         modelName: breakdown.modelName,
         capacityName: breakdown.capacity,
         grade: breakdown.effectiveGrade,
@@ -114,6 +122,14 @@ router.post('/', async (req: Request, res: Response) => {
           include: { model: true },
         },
         parts: true,
+        store: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
       },
     });
 
@@ -127,16 +143,37 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/evaluations - List evaluations history
-router.get('/', async (_req: Request, res: Response) => {
+// GET /api/evaluations - List evaluations history (Multi-Tenant)
+router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const isStoreUser = req.user?.role === 'STORE';
+    const storeFilter = req.query.storeId ? String(req.query.storeId) : undefined;
+
+    // Se for Loja, filtra estritamente as avaliações da sua própria loja
+    // Se for Master, pode listar todas ou filtrar por uma loja selecionada
+    const whereClause: any = {};
+    if (isStoreUser) {
+      whereClause.storeId = req.user!.id;
+    } else if (storeFilter && storeFilter !== 'ALL') {
+      whereClause.storeId = storeFilter;
+    }
+
     const evaluations = await prisma.evaluation.findMany({
+      where: whereClause,
       orderBy: { createdAt: 'desc' },
       include: {
         variant: {
           include: { model: true },
         },
         parts: true,
+        store: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
       },
     });
     res.json(evaluations);
@@ -146,7 +183,7 @@ router.get('/', async (_req: Request, res: Response) => {
 });
 
 // GET /api/evaluations/:id - Get single evaluation details
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = Number(req.params.id);
     const evaluation = await prisma.evaluation.findUnique({
@@ -156,11 +193,24 @@ router.get('/:id', async (req: Request, res: Response) => {
           include: { model: true },
         },
         parts: true,
+        store: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
       },
     });
 
     if (!evaluation) {
       return res.status(404).json({ error: 'Avaliação não encontrada.' });
+    }
+
+    // Validação de isolamento: se usuário for STORE, não pode abrir avaliação de outra loja
+    if (req.user?.role === 'STORE' && evaluation.storeId && evaluation.storeId !== req.user.id) {
+      return res.status(403).json({ error: 'Acesso não permitido a esta avaliação.' });
     }
 
     res.json(evaluation);
@@ -170,9 +220,24 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE /api/evaluations/:id - Delete an evaluation
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = Number(req.params.id);
+
+    const existing = await prisma.evaluation.findUnique({
+      where: { id },
+      select: { id: true, storeId: true },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Avaliação não encontrada.' });
+    }
+
+    // Se usuário for STORE, só pode excluir avaliações de sua própria loja
+    if (req.user?.role === 'STORE' && existing.storeId && existing.storeId !== req.user.id) {
+      return res.status(403).json({ error: 'Você não tem permissão para excluir avaliações de outras lojas.' });
+    }
+
     await prisma.evaluation.delete({
       where: { id },
     });

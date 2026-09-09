@@ -63,6 +63,23 @@ export interface CalculationBreakdown {
   suggestedSellingPrice: number;
 }
 
+export type Role = 'MASTER' | 'STORE';
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+  createdAt?: string;
+}
+
+export interface StoreSummary {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+}
+
 export interface EvaluationPart {
   id: number;
   evaluationId: number;
@@ -75,6 +92,8 @@ export interface Evaluation {
   id: number;
   variantId?: number | null;
   variant?: (Variant & { model: Model }) | null;
+  storeId?: string | null;
+  store?: StoreSummary | null;
   modelName?: string | null;
   capacityName?: string | null;
   grade: 'A' | 'B' | 'C';

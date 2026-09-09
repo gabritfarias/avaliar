@@ -54,27 +54,29 @@ model Part {
 }
 
 model Evaluation {
-  id                  Int              @id @default(autoincrement())
-  variantId           Int?
-  variant             Variant?         @relation(fields: [variantId], references: [id], onDelete: SetNull)
-  modelName           String?
-  capacityName        String?
-  grade               String
+  id                       Int              @id @default(autoincrement())
+  variantId                Int?
+  variant                  Variant?         @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  storeId                  String?
+  store                    User?            @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  modelName                String?
+  capacityName             String?
+  grade                    String
   hasReplacedPart          Boolean          @default(false)
   replacedComponents       String?
   replacedComponentsStatus String?
   unknownPartsCount        Int              @default(0)
   unknownPartsDeduction    Float            @default(0)
   basePriceGradeA          Float
-  gradeDiscount       Float
-  totalPartsDeduction Float
-  finalValue          Float
-  suggestedPurchasePrice Float         @default(0)
-  suggestedSellingPrice Float          @default(0)
-  customerName        String?
-  notes               String?
-  createdAt           DateTime         @default(now())
-  parts               EvaluationPart[]
+  gradeDiscount            Float
+  totalPartsDeduction      Float
+  finalValue               Float
+  suggestedPurchasePrice   Float            @default(0)
+  suggestedSellingPrice    Float            @default(0)
+  customerName             String?
+  notes                    String?
+  createdAt                DateTime         @default(now())
+  parts                    EvaluationPart[]
 }
 
 model EvaluationPart {
@@ -84,5 +86,21 @@ model EvaluationPart {
   partId       Int?
   partName     String
   cost         Float
+}
+
+enum Role {
+  MASTER
+  STORE
+}
+
+model User {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  password    String
+  name        String
+  role        Role         @default(STORE)
+  evaluations Evaluation[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 

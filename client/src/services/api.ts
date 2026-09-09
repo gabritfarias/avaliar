@@ -1,10 +1,118 @@
-import { Model, GradeSettings, CalculationBreakdown, Evaluation, Variant, Part } from '../types';
+import {
+  Model,
+  GradeSettings,
+  CalculationBreakdown,
+  Evaluation,
+  Variant,
+  Part,
+  User,
+  StoreSummary,
+} from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || 'http://localhost:3001';
 
+const TOKEN_KEY = 'iavalia_token';
+const USER_KEY = 'iavalia_user';
+
+export function getStoredToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function getStoredUser(): User | null {
+  const userStr = localStorage.getItem(USER_KEY);
+  if (!userStr) return null;
+  try {
+    return JSON.parse(userStr);
+  } catch {
+    return null;
+  }
+}
+
+export function setAuthSession(token: string, user: User) {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+export function clearAuthSession() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+}
+
+function getAuthHeaders(hasBody = false): HeadersInit {
+  const headers: Record<string, string> = {};
+  if (hasBody) {
+    headers['Content-Type'] = 'application/json';
+  }
+  const token = getStoredToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+function handleUnauthorized(res: Response) {
+  if (res.status === 401) {
+    clearAuthSession();
+    window.dispatchEvent(new Event('auth:unauthorized'));
+  }
+}
+
+// ================= AUTH API =================
+
+export async function login(credentials: { email: string; password: string }): Promise<{ token: string; user: User }> {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Erro ao realizar login');
+  }
+
+  const data = await res.json();
+  setAuthSession(data.token, data.user);
+  return data;
+}
+
+export async function fetchCurrentUser(): Promise<User> {
+  const res = await fetch(`${API_BASE}/auth/me`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    handleUnauthorized(res);
+    throw new Error('Falha ao autenticar usuário');
+  }
+
+  const data = await res.json();
+  return data.user;
+}
+
+export async function fetchStores(): Promise<StoreSummary[]> {
+  const res = await fetch(`${API_BASE}/auth/stores`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    handleUnauthorized(res);
+    throw new Error('Falha ao carregar lista de lojas');
+  }
+
+  return res.json();
+}
+
+// ================= MODELS & CATALOG API =================
+
 export async function fetchModels(): Promise<Model[]> {
-  const res = await fetch(`${API_BASE}/models`);
-  if (!res.ok) throw new Error('Falha ao carregar modelos');
+  const res = await fetch(`${API_BASE}/models`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    handleUnauthorized(res);
+    throw new Error('Falha ao carregar modelos');
+  }
   return res.json();
 }
 
@@ -16,10 +124,11 @@ export async function createModel(data: {
 }): Promise<Model> {
   const res = await fetch(`${API_BASE}/models`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(data),
   });
   if (!res.ok) {
+    handleUnauthorized(res);
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Erro ao criar modelo');
   }
@@ -29,29 +138,12 @@ export async function createModel(data: {
 export async function deleteModel(id: number): Promise<{ message: string; deletedId: number }> {
   const res = await fetch(`${API_BASE}/models/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
+    handleUnauthorized(res);
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Erro ao excluir modelo');
-  }
-  return res.json();
-}
-
-export async function fetchGradeSettings(): Promise<GradeSettings> {
-  const res = await fetch(`${API_BASE}/settings`);
-  if (!res.ok) throw new Error('Falha ao carregar configurações de grade');
-  return res.json();
-}
-
-export async function updateGradeSettings(data: { discountB: number; discountC: number }): Promise<{ message: string; settings: GradeSettings }> {
-  const res = await fetch(`${API_BASE}/settings`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'Erro ao atualizar configurações');
   }
   return res.json();
 }
@@ -59,10 +151,11 @@ export async function updateGradeSettings(data: { discountB: number; discountC: 
 export async function updateVariantPrice(variantId: number, priceGradeA: number): Promise<Variant> {
   const res = await fetch(`${API_BASE}/models/variants/${variantId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(true),
     body: JSON.stringify({ priceGradeA }),
   });
   if (!res.ok) {
+    handleUnauthorized(res);
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Erro ao atualizar preço da capacidade');
   }
@@ -72,10 +165,11 @@ export async function updateVariantPrice(variantId: number, priceGradeA: number)
 export async function addVariant(modelId: number, capacity: string, priceGradeA: number): Promise<Variant> {
   const res = await fetch(`${API_BASE}/models/${modelId}/variants`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(true),
     body: JSON.stringify({ capacity, priceGradeA }),
   });
   if (!res.ok) {
+    handleUnauthorized(res);
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Erro ao adicionar capacidade');
   }
@@ -85,20 +179,52 @@ export async function addVariant(modelId: number, capacity: string, priceGradeA:
 export async function deleteVariant(variantId: number): Promise<void> {
   const res = await fetch(`${API_BASE}/models/variants/${variantId}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
+    handleUnauthorized(res);
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Erro ao remover capacidade');
   }
 }
 
+// ================= GRADE SETTINGS API =================
+
+export async function fetchGradeSettings(): Promise<GradeSettings> {
+  const res = await fetch(`${API_BASE}/settings`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    handleUnauthorized(res);
+    throw new Error('Falha ao carregar configurações de grade');
+  }
+  return res.json();
+}
+
+export async function updateGradeSettings(data: { discountB: number; discountC: number }): Promise<{ message: string; settings: GradeSettings }> {
+  const res = await fetch(`${API_BASE}/settings`, {
+    method: 'PUT',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    handleUnauthorized(res);
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Erro ao atualizar configurações');
+  }
+  return res.json();
+}
+
+// ================= PARTS API =================
+
 export async function addPart(modelId: number, name: string, cost: number): Promise<Part> {
   const res = await fetch(`${API_BASE}/parts`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(true),
     body: JSON.stringify({ modelId, name, cost }),
   });
   if (!res.ok) {
+    handleUnauthorized(res);
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Erro ao adicionar peça');
   }
@@ -108,10 +234,11 @@ export async function addPart(modelId: number, name: string, cost: number): Prom
 export async function updatePart(partId: number, data: { name?: string; cost?: number }): Promise<Part> {
   const res = await fetch(`${API_BASE}/parts/${partId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(data),
   });
   if (!res.ok) {
+    handleUnauthorized(res);
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Erro ao atualizar peça');
   }
@@ -121,12 +248,16 @@ export async function updatePart(partId: number, data: { name?: string; cost?: n
 export async function deletePart(partId: number): Promise<void> {
   const res = await fetch(`${API_BASE}/parts/${partId}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
+    handleUnauthorized(res);
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Erro ao remover peça');
   }
 }
+
+// ================= EVALUATIONS API =================
 
 export async function calculateEvaluation(data: {
   variantId: number;
@@ -138,10 +269,11 @@ export async function calculateEvaluation(data: {
 }): Promise<CalculationBreakdown> {
   const res = await fetch(`${API_BASE}/evaluations/calculate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(data),
   });
   if (!res.ok) {
+    handleUnauthorized(res);
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Erro ao calcular avaliação');
   }
@@ -160,27 +292,39 @@ export async function saveEvaluation(data: {
 }): Promise<{ message: string; evaluation: Evaluation; breakdown: CalculationBreakdown }> {
   const res = await fetch(`${API_BASE}/evaluations`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(data),
   });
   if (!res.ok) {
+    handleUnauthorized(res);
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Erro ao salvar avaliação');
   }
   return res.json();
 }
 
-export async function fetchEvaluations(): Promise<Evaluation[]> {
-  const res = await fetch(`${API_BASE}/evaluations`);
-  if (!res.ok) throw new Error('Falha ao buscar histórico de avaliações');
+export async function fetchEvaluations(storeId?: string): Promise<Evaluation[]> {
+  const url = storeId && storeId !== 'ALL'
+    ? `${API_BASE}/evaluations?storeId=${encodeURIComponent(storeId)}`
+    : `${API_BASE}/evaluations`;
+
+  const res = await fetch(url, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    handleUnauthorized(res);
+    throw new Error('Falha ao buscar histórico de avaliações');
+  }
   return res.json();
 }
 
 export async function deleteEvaluation(id: number): Promise<void> {
   const res = await fetch(`${API_BASE}/evaluations/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
+    handleUnauthorized(res);
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Erro ao excluir avaliação');
   }

@@ -90,10 +90,10 @@ async function runTests() {
     assert(resUnknown1.forcedGradeC === true, 'forcedGradeC deve ser true');
     assert(resUnknown1.unknownPartsCount === 1, 'unknownPartsCount deve ser 1');
     assert(resUnknown1.unknownPartsDeduction === 200, 'Penalidade de 1 peça desconhecida deve ser R$ 200');
-    // Preço Grade C (800) - penalidade (200) = 600
-    assert(resUnknown1.finalValue === 600, `Valor final de 1 desconhecida deve ser 600, recebido ${resUnknown1.finalValue}`);
-    assert(resUnknown1.suggestedPurchasePrice === 600, `Valor sugerido de compra deve ser 600, recebido ${resUnknown1.suggestedPurchasePrice}`);
-    assert(resUnknown1.suggestedSellingPrice === 1100, `Valor sugerido de venda deve ser 1100, recebido ${resUnknown1.suggestedSellingPrice}`);
+    const expectedUnknown1 = var128.priceGradeA - 200 - 200;
+    assert(resUnknown1.finalValue === expectedUnknown1, `Valor final de 1 desconhecida deve ser ${expectedUnknown1}, recebido ${resUnknown1.finalValue}`);
+    assert(resUnknown1.suggestedPurchasePrice === expectedUnknown1, `Valor sugerido de compra deve ser ${expectedUnknown1}, recebido ${resUnknown1.suggestedPurchasePrice}`);
+    assert(resUnknown1.suggestedSellingPrice === expectedUnknown1 + 500, `Valor sugerido de venda deve ser ${expectedUnknown1 + 500}, recebido ${resUnknown1.suggestedSellingPrice}`);
 
     // Teste 4.3: 2+ Peças Desconhecidas -> Trava Grade C, penalidade de R$ 300 nos valores
     const resUnknown2 = await calculateEvaluation({
@@ -109,10 +109,10 @@ async function runTests() {
     assert(resUnknown2.effectiveGrade === 'C', '2 peças desconhecidas DEVEM travar em Grade C');
     assert(resUnknown2.unknownPartsCount === 2, 'unknownPartsCount deve ser 2');
     assert(resUnknown2.unknownPartsDeduction === 300, 'Penalidade de 2 peças desconhecidas deve ser R$ 300');
-    // Preço Grade C (800) - penalidade (300) = 500
-    assert(resUnknown2.finalValue === 500, `Valor final de 2 desconhecidas deve ser 500, recebido ${resUnknown2.finalValue}`);
-    assert(resUnknown2.suggestedPurchasePrice === 500, `Valor sugerido de compra deve ser 500, recebido ${resUnknown2.suggestedPurchasePrice}`);
-    assert(resUnknown2.suggestedSellingPrice === 1000, `Valor sugerido de venda deve ser 1000, recebido ${resUnknown2.suggestedSellingPrice}`);
+    const expectedUnknown2 = var128.priceGradeA - 200 - 300;
+    assert(resUnknown2.finalValue === expectedUnknown2, `Valor final de 2 desconhecidas deve ser ${expectedUnknown2}, recebido ${resUnknown2.finalValue}`);
+    assert(resUnknown2.suggestedPurchasePrice === expectedUnknown2, `Valor sugerido de compra deve ser ${expectedUnknown2}, recebido ${resUnknown2.suggestedPurchasePrice}`);
+    assert(resUnknown2.suggestedSellingPrice === expectedUnknown2 + 500, `Valor sugerido de venda deve ser ${expectedUnknown2 + 500}, recebido ${resUnknown2.suggestedSellingPrice}`);
 
     // Teste 5: Abatimento de Múltiplas Peças
     const bateria = iphone12.parts.find((p) => p.name === 'Bateria');
