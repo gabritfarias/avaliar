@@ -68,16 +68,15 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
   // Model Management State (Add & Delete)
   const [isCreateModelOpen, setIsCreateModelOpen] = useState<boolean>(false);
   const [newModelName, setNewModelName] = useState<string>('');
-  const [newModelCapacities, setNewModelCapacities] = useState<Array<{ capacity: string; priceGradeA: number }>>([
-    { capacity: '128GB', priceGradeA: 1500 },
-    { capacity: '256GB', priceGradeA: 1800 },
+  const [newModelCapacities, setNewModelCapacities] = useState<Array<{ capacity: string; priceGradeA: number | '' }>>([
+    { capacity: '', priceGradeA: '' },
   ]);
   const [createDefaultParts, setCreateDefaultParts] = useState<boolean>(true);
   const [isSubmittingModel, setIsSubmittingModel] = useState<boolean>(false);
   const [deletingModelId, setDeletingModelId] = useState<number | null>(null);
 
   const handleAddModelCapacityRow = () => {
-    setNewModelCapacities([...newModelCapacities, { capacity: '512GB', priceGradeA: 2200 }]);
+    setNewModelCapacities([...newModelCapacities, { capacity: '', priceGradeA: '' }]);
   };
 
   const handleRemoveModelCapacityRow = (index: number) => {
@@ -100,18 +99,30 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
       showToast('Nome do modelo é obrigatório.', 'error');
       return;
     }
+
+    const validVariants = newModelCapacities
+      .filter((c) => c.capacity.trim() !== '')
+      .map((c) => ({
+        capacity: c.capacity.trim(),
+        priceGradeA: Number(c.priceGradeA) || 0,
+      }));
+
+    if (validVariants.length === 0) {
+      showToast('Informe ao menos uma capacidade válida.', 'error');
+      return;
+    }
+
     try {
       setIsSubmittingModel(true);
       await createModel({
         name: newModelName.trim(),
-        variants: newModelCapacities,
+        variants: validVariants,
         createDefaultParts,
       });
       showToast(`Modelo "${newModelName.trim()}" cadastrado com sucesso!`);
       setNewModelName('');
       setNewModelCapacities([
-        { capacity: '128GB', priceGradeA: 1500 },
-        { capacity: '256GB', priceGradeA: 1800 },
+        { capacity: '', priceGradeA: '' },
       ]);
       setIsCreateModelOpen(false);
       onRefreshData();
@@ -145,8 +156,8 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
 
   // New Variant Modal/Form State
   const [newVariantModelId, setNewVariantModelId] = useState<number>(models[0]?.id || 1);
-  const [newCapacity, setNewCapacity] = useState<string>('128GB');
-  const [newPriceGradeA, setNewPriceGradeA] = useState<number>(1000);
+  const [newCapacity, setNewCapacity] = useState<string>('');
+  const [newPriceGradeA, setNewPriceGradeA] = useState<number | ''>('');
   const [isAddingVariant, setIsAddingVariant] = useState<boolean>(false);
 
   const handleStartEditPrice = (variantId: number, currentPrice: number) => {
@@ -170,10 +181,16 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
 
   const handleAddVariant = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newCapacity.trim()) {
+      showToast('Informe a capacidade.', 'error');
+      return;
+    }
     try {
       setIsAddingVariant(true);
-      await addVariant(newVariantModelId, newCapacity, newPriceGradeA);
-      showToast(`Capacidade ${newCapacity} adicionada com sucesso!`);
+      await addVariant(newVariantModelId, newCapacity.trim(), Number(newPriceGradeA) || 0);
+      showToast(`Capacidade ${newCapacity.trim()} adicionada com sucesso!`);
+      setNewCapacity('');
+      setNewPriceGradeA('');
       onRefreshData();
     } catch (err: any) {
       showToast(err.message || 'Erro ao adicionar capacidade', 'error');
@@ -379,7 +396,8 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
                   min="0"
                   step="10"
                   value={newPriceGradeA}
-                  onChange={(e) => setNewPriceGradeA(Number(e.target.value))}
+                  onChange={(e) => setNewPriceGradeA(e.target.value === '' ? '' : Number(e.target.value))}
+                  placeholder="Preço Grade A"
                   required
                   className="w-full min-h-[44px] px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-base font-medium"
                 />
@@ -802,7 +820,7 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
                   type="text"
                   value={newModelName}
                   onChange={(e) => setNewModelName(e.target.value)}
-                  placeholder="Ex: iPhone 17 Pro Max ou Galaxy S24 Ultra"
+                  placeholder="Ex: iPhone 17"
                   required
                   autoFocus
                   className="w-full min-h-[48px] px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-base font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
@@ -845,7 +863,7 @@ export const AdminPricing: React.FC<AdminPricingProps> = ({
                           min="0"
                           step="10"
                           value={row.priceGradeA}
-                          onChange={(e) => handleUpdateModelCapacityRow(idx, 'priceGradeA', Number(e.target.value))}
+                          onChange={(e) => handleUpdateModelCapacityRow(idx, 'priceGradeA', e.target.value === '' ? '' : Number(e.target.value))}
                           placeholder="Preço Grade A"
                           required
                           className="w-full min-h-[40px] pl-8 pr-2 py-1.5 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-900"
