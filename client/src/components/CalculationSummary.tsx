@@ -77,9 +77,14 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
               <Sparkles className="w-3 h-3 text-emerald-400" /> Tempo Real
             </span>
           </div>
-          <p className="text-xs text-slate-300 mt-1 font-medium">
-            {calculation.modelName} ({calculation.capacity})
-          </p>
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-xs text-slate-300 font-medium">
+              {calculation.modelName} ({calculation.capacity})
+            </p>
+            <span className="text-[10px] text-emerald-300 font-bold bg-emerald-950/70 border border-emerald-500/30 px-2 py-0.5 rounded-md">
+              Tabela Oficial Global
+            </span>
+          </div>
         </div>
 
         {/* Breakdown Items */}
@@ -323,7 +328,12 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
               <div className="flex items-center gap-2">
                 <Calculator className="w-5 h-5 text-emerald-600" />
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Memória de Cálculo</h3>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-base font-bold text-slate-900">Memória de Cálculo</h3>
+                    <span className="text-[9px] text-emerald-800 font-bold bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
+                      Tabela Oficial
+                    </span>
+                  </div>
                   <p className="text-[11px] text-slate-500">
                     {calculation.modelName} ({calculation.capacity})
                   </p>

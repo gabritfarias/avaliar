@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   RefreshCw,
   Search,
+  ShieldCheck,
 } from 'lucide-react';
 
 const AVAILABLE_COMPONENTS = [
@@ -284,14 +285,19 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
           <section className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold shrink-0">
-                    1
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-bold shrink-0">
+                      1
+                    </span>
+                    Modelo do iPhone
+                  </h3>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" /> Tabela Oficial Global
                   </span>
-                  Modelo do iPhone
-                </h3>
+                </div>
                 <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                  {models.length} {models.length === 1 ? 'modelo disponível' : 'modelos disponíveis'} no catálogo
+                  Preços base e custos de peças oficiais gerenciados pela Administração ({models.length} modelos)
                 </p>
               </div>
 

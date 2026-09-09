@@ -283,7 +283,7 @@ export const HelpPage: React.FC = () => {
       content: (
         <div className="space-y-4 text-sm text-slate-700 leading-relaxed">
           <p>
-            Na aba <strong>"Configurações & Preços"</strong>, o administrador da loja pode gerenciar todo o catálogo de produtos e ajustar os preços praticados:
+            O catálogo de iPhones, as capacidades, os preços-base de Grade A, os custos de peças e os descontos de grade pertencem a uma <strong>tabela oficial global e centralizada</strong>. Exclusivamente o perfil Administrador (<strong>Master</strong>) tem acesso à aba <strong>"Configurações & Preços"</strong> para gerenciar os valores da rede. Todos os usuários de lojas comuns utilizam automaticamente essa mesma tabela oficial nas avaliações de balcão, garantindo padronização completa de preços em todas as unidades.
           </p>
 
           <div className="space-y-3">
