@@ -16,7 +16,6 @@ import {
   Sparkles,
   Info,
   DollarSign,
-  Database,
   Trash2,
   PlusCircle,
 } from 'lucide-react';
@@ -37,8 +36,8 @@ export const HelpPage: React.FC = () => {
   const [expandedTopicIds, setExpandedTopicIds] = useState<string[]>([
     'como-avaliar',
     'pecas-substituidas',
-    'gestao-catalogo',
     'precos-sugeridos',
+    'gestao-catalogo',
     'historico-atendimentos',
   ]);
 
@@ -59,55 +58,55 @@ export const HelpPage: React.FC = () => {
   const topics: HelpTopic[] = [
     {
       id: 'como-avaliar',
-      title: '1. Como Realizar uma Nova Avaliação Passo a Passo',
+      title: '1. Como Realizar uma Avaliação no Balcão (Passo a Passo)',
       category: 'avaliacao',
-      categoryLabel: 'Avaliação',
+      categoryLabel: 'Avaliação de Balcão',
       icon: <Smartphone className="w-5 h-5 text-emerald-600" />,
-      summary: 'Guia do fluxo de 5 passos no balcão: modelo, capacidade, peça substituída, grade e reparos.',
+      summary: 'Guia prático em 5 etapas: escolha do aparelho, capacidade, peças trocadas, estado de conservação e reparos.',
       content: (
         <div className="space-y-4 text-sm text-slate-700 leading-relaxed">
           <p>
-            O fluxo de avaliação foi desenhado para ser rápido e seguro no balcão, garantindo cálculo em tempo real com memória transparente:
+            O fluxo de atendimento foi planejado para ser ágil e seguro no dia a dia da loja. A cada escolha feita na tela, os valores são recalculados na hora:
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
               <span className="font-black text-slate-900 flex items-center gap-1.5 mb-1 text-xs uppercase tracking-wider">
                 <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[10px] flex items-center justify-center font-bold">1</span>
-                Modelo & Série
+                Modelo do iPhone
               </span>
               <p className="text-xs text-slate-600">
-                Selecione o modelo do iPhone. Utilize os filtros de série (Linha 12, 13, 14, 15, 16) ou o campo de busca rápida pelo nome.
+                Escolha o modelo trazido pelo cliente. Você pode filtrar rapidamente pelos botões de linha (ex: Linha 13, 14, 15, 16) ou digitar o nome na barra de busca.
               </p>
             </div>
 
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
               <span className="font-black text-slate-900 flex items-center gap-1.5 mb-1 text-xs uppercase tracking-wider">
                 <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[10px] flex items-center justify-center font-bold">2</span>
-                Capacidade de Armazenamento
+                Capacidade de Memória
               </span>
               <p className="text-xs text-slate-600">
-                Escolha a capacidade (ex: 128GB, 256GB). O valor base de tabela da Grade A (preço de referência novo/impecável) é carregado instantaneamente.
+                Toque na capacidade do aparelho (128GB, 256GB, etc.). O preço base de tabela para um aparelho impecável aparece imediatamente na tela.
               </p>
             </div>
 
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
               <span className="font-black text-slate-900 flex items-center gap-1.5 mb-1 text-xs uppercase tracking-wider">
                 <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[10px] flex items-center justify-center font-bold">3</span>
-                Peça Substituída
+                Aviso de Peça Substituída
               </span>
               <p className="text-xs text-slate-600">
-                Verifique em <em>Ajustes &gt; Geral &gt; Sobre</em>. Caso haja troca de bateria, tela ou câmera, defina se é <strong>Genuína Apple</strong> ou <strong>Desconhecida</strong>.
+                Consulte em <em>Ajustes &gt; Geral &gt; Sobre</em>. Se houver peça trocada, selecione se ela é <strong>Genuína Apple</strong> ou se tem aviso de <strong>Peça Desconhecida</strong>.
               </p>
             </div>
 
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
               <span className="font-black text-slate-900 flex items-center gap-1.5 mb-1 text-xs uppercase tracking-wider">
                 <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[10px] flex items-center justify-center font-bold">4</span>
-                Grade de Conservação
+                Estado de Conservação (Grade)
               </span>
               <p className="text-xs text-slate-600">
-                Classifique o estado físico entre Grade A, Grade B ou Grade C. Cada grade possui desconto pré-definido nas configurações da loja.
+                Defina o estado estético do aparelho entre Grade A (impecável), Grade B (marcas leves) ou Grade C (desgastes acentuados). Cada grade aplica o desconto padrão da loja.
               </p>
             </div>
           </div>
@@ -115,10 +114,10 @@ export const HelpPage: React.FC = () => {
           <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
             <span className="font-black text-slate-900 flex items-center gap-1.5 mb-1 text-xs uppercase tracking-wider">
               <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[10px] flex items-center justify-center font-bold">5</span>
-              Peças a Substituir (Deduções da Loja)
+              Consertos Necessários pela Loja
             </span>
             <p className="text-xs text-slate-600">
-              Marque os itens que a loja precisará consertar antes de colocar o iPhone à venda (ex: vidro quebrado, bateria viciada, conector com folga). O custo de cada peça cadastrada para aquele modelo será subtraído do valor final pago ao cliente.
+              Marque as peças que a loja precisará consertar ou trocar antes de colocar o aparelho à venda (ex: tela trincada, bateria fraca, tampa traseira arranhada). O custo desses reparos será abatido do valor que você pagará ao cliente.
             </p>
           </div>
         </div>
@@ -128,16 +127,15 @@ export const HelpPage: React.FC = () => {
       id: 'pecas-substituidas',
       title: '2. Regras de Peças Substituídas: Genuína Apple vs. Desconhecida',
       category: 'avaliacao',
-      categoryLabel: 'Avaliação',
+      categoryLabel: 'Avaliação de Balcão',
       icon: <AlertTriangle className="w-5 h-5 text-amber-600" />,
-      summary: 'Entenda como o status da peça trocada impacta a Grade de conservação e aplica penalidades.',
+      summary: 'Diferença prática entre peças originais e avisos de peça desconhecida, com as penalidades de valor.',
       content: (
         <div className="space-y-4 text-sm text-slate-700 leading-relaxed">
           <p>
-            Ao marcar a opção <strong>"Aparelho possui peça substituída"</strong> no Passo 3, o sistema exige indicar quais peças foram trocadas (Bateria, Tela ou Câmera) e a sua respectiva procedência no iOS:
+            Quando o atendente indica que o aparelho possui uma peça substituída (Bateria, Tela ou Câmera), o sistema exige classificar a procedência exibida no iPhone:
           </p>
 
-          {/* Comparativo lado a lado */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Genuína Apple */}
             <div className="bg-emerald-50/70 border-2 border-emerald-300 rounded-2xl p-4 space-y-2.5">
@@ -145,19 +143,19 @@ export const HelpPage: React.FC = () => {
                 <span className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">✓</span>
                 <div>
                   <h4 className="font-bold text-emerald-950 text-sm">Genuína Apple</h4>
-                  <span className="text-[10px] font-semibold text-emerald-700">Peça original reconhecida pelo iOS</span>
+                  <span className="text-[10px] font-semibold text-emerald-700">Peça oficial reconhecida pelo aparelho</span>
                 </div>
               </div>
 
               <ul className="text-xs text-emerald-900 space-y-1.5 pl-2 list-disc list-inside">
                 <li>
-                  <strong>Grade B ou C Livre:</strong> O atendente pode escolher manualmente entre <strong>Grade B</strong> ou <strong>Grade C</strong>.
+                  <strong>Liberdade de Escolha:</strong> O atendente pode escolher livremente entre a <strong>Grade B</strong> ou a <strong>Grade C</strong>, dependendo da estética do celular.
                 </li>
                 <li>
-                  <strong>Grade A Bloqueada:</strong> Como o aparelho já foi aberto e reparado, ele não pode ser classificado como Grade A.
+                  <strong>Grade A Indisponível:</strong> Como o aparelho já foi aberto e teve peças trocadas, ele não pode ser considerado Grade A.
                 </li>
                 <li>
-                  <strong>Sem Penalidade Extra:</strong> Não há dedução punitiva adicional além do desconto padrão da grade selecionada.
+                  <strong>Sem Desconto Punitivo:</strong> Não há nenhuma penalidade financeira extra além do desconto normal da grade escolhida.
                 </li>
               </ul>
             </div>
@@ -168,22 +166,22 @@ export const HelpPage: React.FC = () => {
                 <span className="w-7 h-7 rounded-lg bg-red-600 text-white flex items-center justify-center text-xs font-bold">⚠️</span>
                 <div>
                   <h4 className="font-bold text-red-950 text-sm">Peça Desconhecida</h4>
-                  <span className="text-[10px] font-semibold text-red-700">Mensagem de peça não genuína no iOS</span>
+                  <span className="text-[10px] font-semibold text-red-700">Mensagem de peça não original no iPhone</span>
                 </div>
               </div>
 
               <ul className="text-xs text-red-900 space-y-1.5 pl-2 list-disc list-inside">
                 <li>
-                  <strong>Trava Obrigatória em Grade C:</strong> O sistema bloqueia automaticamente a Grade A e a Grade B.
+                  <strong>Trava Automática na Grade C:</strong> Por segurança comercial da loja, o sistema força a classificação diretamente na <strong>Grade C</strong>.
                 </li>
                 <li>
-                  <strong>1 Peça Desconhecida:</strong> Aplica dedução extra de <strong>- R$ 200,00</strong> somada ao desconto da Grade C.
+                  <strong>Desconto para 1 Peça Desconhecida:</strong> Além do desconto da Grade C, aplica um desconto extra de <strong>R$ 200,00</strong>.
                 </li>
                 <li>
-                  <strong>2 ou Mais Peças Desconhecidas:</strong> Aplica dedução extra de <strong>- R$ 300,00</strong> somada ao desconto da Grade C.
+                  <strong>Desconto para 2 ou Mais Peças:</strong> Se houver mais de uma peça desconhecida (ex: Tela e Bateria), o desconto extra sobe para <strong>R$ 300,00</strong>.
                 </li>
                 <li>
-                  <strong>Reflexo Comercial:</strong> As penalidades abatem tanto o valor pago ao cliente quanto os preços sugeridos de compra e venda.
+                  <strong>Proteção na Revenda:</strong> Esse desconto protege a margem da loja, pois aparelhos com mensagem no sistema têm maior resistência na revenda.
                 </li>
               </ul>
             </div>
@@ -192,7 +190,7 @@ export const HelpPage: React.FC = () => {
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex items-start gap-2">
             <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <span>
-              <strong>Dica de Balcão:</strong> Para consultar no iPhone do cliente, acesse <em>Ajustes &gt; Geral &gt; Sobre</em>. Se a peça foi trocada em assistência não autorizada, o iOS exibirá "Aviso Importante sobre a Tela/Bateria/Câmera - Peça Desconhecida".
+              <strong>Dica para o Atendente:</strong> Para checar no celular do cliente, acesse <em>Ajustes &gt; Geral &gt; Sobre</em>. Caso uma peça paralela tenha sido instalada, o próprio iPhone exibirá o aviso em destaque indicando peça desconhecida.
             </span>
           </div>
         </div>
@@ -200,15 +198,15 @@ export const HelpPage: React.FC = () => {
     },
     {
       id: 'precos-sugeridos',
-      title: '3. Preços Sugeridos de Compra e Venda e Fórmulas de Cálculo',
+      title: '3. Preços Sugeridos de Compra e Venda e Como Funcionam os Descontos',
       category: 'precos',
       categoryLabel: 'Preços & Cálculos',
       icon: <TrendingUp className="w-5 h-5 text-blue-600" />,
-      summary: 'Como funciona o cálculo do Valor Final, Valor Sugerido de Compra e Margem de R$ 500 na Venda.',
+      summary: 'Entenda como a loja calcula o valor pago ao cliente, o teto de compra e a margem de revenda.',
       content: (
         <div className="space-y-4 text-sm text-slate-700 leading-relaxed">
           <p>
-            O sistema trabalha com 3 valores principais para apoiar as decisões comerciais da loja:
+            O sistema apresenta 3 valores estratégicos para orientar a negociação no balcão e garantir lucro nas vendas:
           </p>
 
           <div className="space-y-3">
@@ -217,15 +215,30 @@ export const HelpPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span className="font-bold text-emerald-950 text-xs uppercase tracking-wider flex items-center gap-1.5">
                   <DollarSign className="w-4 h-4 text-emerald-600" />
-                  Valor Final de Compra (Pago ao Cliente)
+                  Valor Final a Pagar ao Cliente
                 </span>
                 <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Proposta Balcão</span>
               </div>
-              <p className="text-xs text-emerald-900 mt-1.5">
-                É o valor líquido que o atendente oferece ao cliente no balcão. Fórmula matemática:
+              <p className="text-xs text-emerald-900 mt-1.5 leading-relaxed">
+                É a quantia líquida que a loja deve oferecer ao cliente. O sistema inicia no preço base do aparelho e vai subtraindo:
               </p>
-              <div className="mt-2 p-2 bg-white rounded-lg border border-emerald-200 text-xs font-mono text-emerald-950">
-                Valor Final = Preço Base (Grade A) - Desconto Grade - Penalidade Desconhecida - Deduções de Peças (Loja)
+              <div className="mt-2 p-2.5 bg-white rounded-lg border border-emerald-200 text-xs text-emerald-950 font-medium space-y-1">
+                <div className="flex items-center justify-between">
+                  <span>Preço Base de Tabela (Grade A)</span>
+                  <span className="text-emerald-700 font-bold">+ Valor inicial</span>
+                </div>
+                <div className="flex items-center justify-between text-amber-700">
+                  <span>(−) Desconto do Estado Físico (Grade B ou C)</span>
+                  <span>− Desconto da Grade</span>
+                </div>
+                <div className="flex items-center justify-between text-red-700">
+                  <span>(−) Desconto de Peça Desconhecida (se houver)</span>
+                  <span>− R$ 200 ou R$ 300</span>
+                </div>
+                <div className="flex items-center justify-between text-red-700 border-t border-slate-100 pt-1">
+                  <span>(−) Peças Quebradas que a Loja vai Reparar</span>
+                  <span>− Custo das Peças</span>
+                </div>
               </div>
             </div>
 
@@ -238,12 +251,9 @@ export const HelpPage: React.FC = () => {
                 </span>
                 <span className="text-[11px] font-bold text-slate-700 bg-slate-200 px-2 py-0.5 rounded-full">Teto de Tabela</span>
               </div>
-              <p className="text-xs text-slate-600 mt-1.5">
-                Representa o valor de tabela do aparelho na grade avaliada, <strong>totalmente independente dos custos de reparo da loja</strong>. Assim, o lojista sabe quanto o aparelho vale sem avarias:
+              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                É o valor de tabela do aparelho no seu estado de conservação, <strong>sem descontar os consertos que a loja precisará fazer</strong>. Serve como um teto de referência para o atendente saber até quanto o aparelho vale sem avarias.
               </p>
-              <div className="mt-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-mono text-slate-800">
-                Sugerido Compra = Preço Base (Grade A) - Desconto Grade - Penalidade Desconhecida
-              </div>
             </div>
 
             {/* Sugerido Venda */}
@@ -251,16 +261,13 @@ export const HelpPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span className="font-bold text-emerald-400 text-xs uppercase tracking-wider flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-emerald-400" />
-                  Valor Sugerido para Venda (Revenda)
+                  Valor Sugerido para Venda (Revenda na Vitrine)
                 </span>
-                <span className="text-[11px] font-bold text-emerald-300 bg-emerald-950 border border-emerald-600/40 px-2 py-0.5 rounded-full">Revenda (+R$ 500)</span>
+                <span className="text-[11px] font-bold text-emerald-300 bg-emerald-950 border border-emerald-600/40 px-2 py-0.5 rounded-full">Margem (+R$ 500)</span>
               </div>
-              <p className="text-xs text-slate-300 mt-1.5">
-                Calculado com base na margem padrão da loja para revenda do seminovo com garantia. Adiciona R$ 500,00 sobre o preço base ajustado:
+              <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                É o preço recomendado para colocar o iPhone à venda na vitrine da loja com margem saudável e garantia. O sistema adiciona automaticamente <strong>R$ 500,00 de margem</strong> sobre o valor de referência do aparelho.
               </p>
-              <div className="mt-2 p-2 bg-slate-800 rounded-lg border border-slate-700 text-xs font-mono text-emerald-300">
-                Sugerido Venda = Sugerido Compra + R$ 500,00
-              </div>
             </div>
           </div>
         </div>
@@ -268,45 +275,45 @@ export const HelpPage: React.FC = () => {
     },
     {
       id: 'gestao-catalogo',
-      title: '4. Gestão de Modelos, Peças e Exclusão em Cascata',
+      title: '4. Gestão de Modelos e Peças de Reposição',
       category: 'catalogo',
       categoryLabel: 'Catálogo & Modelos',
       icon: <Layers className="w-5 h-5 text-indigo-600" />,
-      summary: 'Como cadastrar novos modelos, gerenciar capacidades e como funciona a exclusão segura em cascata.',
+      summary: 'Como cadastrar novos aparelhos, ajustar preços de tabela e manter a tela de peças sempre limpa.',
       content: (
         <div className="space-y-4 text-sm text-slate-700 leading-relaxed">
           <p>
-            Na aba <strong>"Configurações & Preços"</strong>, os gestores da loja têm controle total sobre o catálogo de produtos e valores de tabela:
+            Na aba <strong>"Configurações & Preços"</strong>, o administrador da loja pode gerenciar todo o catálogo de produtos e ajustar os preços praticados:
           </p>
 
           <div className="space-y-3">
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
               <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
                 <PlusCircle className="w-4 h-4 text-emerald-600" />
-                <span>Cadastro Livre de Novos Modelos</span>
+                <span>Cadastro de Novos Lançamentos</span>
               </div>
               <p className="text-xs text-slate-600">
-                Para cadastrar um novo modelo (ex: iPhone 17 Pro ou qualquer novo lançamento), clique em <strong>"Novo Modelo"</strong>. Preencha o nome e adicione as capacidades com seus preços base para Grade A.
+                Sempre que a loja começar a trabalhar com um novo modelo (como novos lançamentos da Apple), clique no botão <strong>"Novo Modelo"</strong>. Digite o nome do modelo e adicione as capacidades com seus preços base para Grade A.
               </p>
             </div>
 
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
               <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
                 <Wrench className="w-4 h-4 text-indigo-600" />
-                <span>Autogeração e Sincronização de Peças</span>
+                <span>Criação Automática das Peças de Reposição</span>
               </div>
               <p className="text-xs text-slate-600">
-                Ao cadastrar um modelo, o sistema cria automaticamente as 6 peças essenciais de reparo (Tela, Bateria, Câmera Traseira, Tampa Traseira, Conector de Carga e Câmera Frontal). Os custos dessas peças podem ser editados individualmente na aba "Peças de Reposição".
+                Ao cadastrar um novo modelo, o sistema já adiciona automaticamente as 6 peças principais de assistência (Tela, Bateria, Câmera Traseira, Tampa Traseira, Conector de Carga e Câmera Frontal). Você pode ajustar o custo de cada peça quando desejar na aba "Peças de Reposição".
               </p>
             </div>
 
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
               <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
                 <Trash2 className="w-4 h-4 text-red-600" />
-                <span>Exclusão Segura em Cascata</span>
+                <span>Remoção Limpa de Aparelhos do Catálogo</span>
               </div>
               <p className="text-xs text-slate-600">
-                Quando um modelo é excluído do catálogo, o banco de dados executa uma exclusão em cascata das variantes e das peças vinculadas àquele modelo. Isso impede o acúmulo de dados órfãos e garante que a aba de peças exiba apenas peças de modelos atualmente ativos.
+                Ao apagar um aparelho antigo ou descontinuado do catálogo, o sistema limpa automaticamente todas as capacidades e peças associadas a ele. Dessa forma, a tela de peças fica sempre limpa e organizada, mostrando somente os aparelhos que a loja realmente trabalha no momento.
               </p>
             </div>
           </div>
@@ -315,35 +322,35 @@ export const HelpPage: React.FC = () => {
     },
     {
       id: 'historico-atendimentos',
-      title: '5. Histórico de Atendimentos e Integridade dos Registros',
+      title: '5. Histórico de Atendimentos e Segurança das Vendas',
       category: 'historico',
       categoryLabel: 'Histórico & Comprovante',
       icon: <History className="w-5 h-5 text-purple-600" />,
-      summary: 'Como consultar avaliações passadas e a garantia de preservação dos dados mesmo se modelos forem excluídos.',
+      summary: 'Como consultar atendimentos anteriores, emitir comprovantes e manter seus registros sempre protegidos.',
       content: (
         <div className="space-y-4 text-sm text-slate-700 leading-relaxed">
           <p>
-            A aba <strong>"Histórico"</strong> registra todas as avaliações concluídas e salvas pelos atendentes:
+            A aba <strong>"Histórico"</strong> funciona como o arquivo digital de todas as negociações já concluídas no balcão:
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
               <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-1 flex items-center gap-1.5">
                 <Search className="w-3.5 h-3.5 text-slate-600" />
-                Busca & Filtros
+                Busca de Atendimentos
               </h4>
               <p className="text-xs text-slate-600">
-                Filtre por nome do cliente, modelo do iPhone, data do atendimento ou grade avaliada (A, B ou C).
+                Localize qualquer atendimento digitando o nome do cliente, o modelo do celular, a data da avaliação ou filtrando pela grade de conservação.
               </p>
             </div>
 
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
               <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-1 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                Comprovante & Recibo
+                Comprovante Detalhado
               </h4>
               <p className="text-xs text-slate-600">
-                Clique no botão <strong>"Comprovante"</strong> para abrir o recibo digital com memória de cálculo detalhada, pronto para impressão ou cópia.
+                Clique no botão <strong>"Comprovante"</strong> para visualizar o recibo da negociação, com todos os valores e descontos explicados, pronto para imprimir ou enviar ao cliente.
               </p>
             </div>
           </div>
@@ -351,10 +358,10 @@ export const HelpPage: React.FC = () => {
           <div className="bg-purple-50 border border-purple-200 rounded-xl p-3.5 text-xs text-purple-950 space-y-1.5">
             <div className="flex items-center gap-1.5 font-bold text-purple-900">
               <ShieldCheck className="w-4 h-4 text-purple-600" />
-              <span>Garantia de Preservação Histórica (Snapshot Seguro)</span>
+              <span>Suas Avaliações Ficam Sempre Salvas e Protegidas</span>
             </div>
             <p className="leading-relaxed">
-              O sistema salva no banco de dados os snapshots dos nomes do modelo (<code>modelName</code>), capacidade (<code>capacityName</code>) e peças substituídas diretamente no registro da avaliação. Se no futuro um modelo for removido do catálogo de vendas, <strong>as avaliações antigas desse aparelho continuarão salvas, completas e visíveis no histórico</strong> sem erros ou campos em branco.
+              Todas as avaliações salvas no sistema ficam guardadas com as informações completas da negociação: o nome do aparelho, a capacidade, a conservação, as peças trocadas e o valor final pago. Mesmo se a loja excluir um modelo de celular do catálogo no futuro, <strong>o histórico daquela negociação antiga continuará intacto, completo e visível</strong>, sem perder nenhum dado.
             </p>
           </div>
         </div>
@@ -384,14 +391,14 @@ export const HelpPage: React.FC = () => {
         <div className="relative z-10 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30 mb-3">
             <HelpCircle className="w-3.5 h-3.5" />
-            <span>Central de Ajuda & Manual de Operação</span>
+            <span>Central de Ajuda & Manual do Lojista</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            Como Operar o iAvalia Pro
+            Como Utilizar o Sistema de Avaliação
           </h1>
           <p className="text-sm text-slate-300 mt-2 leading-relaxed">
-            Manual interativo com todas as diretrizes de avaliação de balcão, regras de procedência de peças (Genuína vs. Desconhecida), cálculo de preços sugeridos e gestão do catálogo.
+            Guia prático para o dia a dia da loja: como avaliar iPhones no balcão, identificar peças trocadas, calcular preços com segurança e consultar o histórico de atendimentos.
           </p>
 
           {/* Barra de Busca de Ajuda */}
@@ -401,7 +408,7 @@ export const HelpPage: React.FC = () => {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por tema (ex: desconhecida, grade C, venda, excluir)..."
+              placeholder="Buscar por assunto (ex: tela trocada, venda, desconto, grade B)..."
               className="w-full bg-slate-950/70 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             />
           </div>
@@ -412,11 +419,11 @@ export const HelpPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           {[
-            { id: 'all', label: 'Todos os Tópicos' },
+            { id: 'all', label: 'Todos os Assuntos' },
             { id: 'avaliacao', label: 'Avaliação & Peças' },
-            { id: 'precos', label: 'Preços & Cálculos' },
-            { id: 'catalogo', label: 'Catálogo' },
-            { id: 'historico', label: 'Histórico' },
+            { id: 'precos', label: 'Preços & Lucro' },
+            { id: 'catalogo', label: 'Catálogo de Aparelhos' },
+            { id: 'historico', label: 'Histórico de Atendimentos' },
           ].map((cat) => (
             <button
               key={cat.id}
@@ -454,9 +461,9 @@ export const HelpPage: React.FC = () => {
         {filteredTopics.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
             <HelpCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-            <p className="font-bold text-slate-700">Nenhum tópico encontrado</p>
+            <p className="font-bold text-slate-700">Nenhum assunto encontrado</p>
             <p className="text-xs text-slate-500 mt-1">
-              Tente buscar com outros termos como "peça", "grade" ou "compra".
+              Tente buscar com outras palavras como "bateria", "preço" ou "cliente".
             </p>
           </div>
         ) : (
@@ -521,13 +528,13 @@ export const HelpPage: React.FC = () => {
           <div>
             <h4 className="font-bold text-emerald-950 text-sm">Dúvidas Frequentes no Balcão?</h4>
             <p className="text-xs text-emerald-800 mt-0.5">
-              Consulte sempre o menu "Ajustes" para verificar os descontos em vigor da Grade B e Grade C.
+              Consulte sempre o menu "Ajustes" para conferir os descontos atuais definidos para a Grade B e Grade C.
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
-          <span>Versão 1.2.0 • iAvalia Pro</span>
+          <span>iAvalia Pro • Sistema de Avaliação</span>
         </div>
       </div>
     </div>
