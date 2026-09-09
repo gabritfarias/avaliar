@@ -217,30 +217,39 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
 
                 {/* Valor Final, Valor Sugerido & Botões Táteis */}
                 <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                        Compra
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                        A Pagar
                       </span>
-                      <span className="text-base sm:text-lg font-black text-emerald-700 block leading-tight">
+                      <span className="text-sm sm:text-base font-black text-emerald-700 block leading-tight">
                         {formatCurrency(ev.finalValue)}
                       </span>
                     </div>
 
-                    <div className="border-l border-slate-200 pl-3">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                        Sugerido Venda
+                    <div className="border-l border-slate-200 pl-2">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">
+                        Sug. Compra
                       </span>
-                      <span className="text-base sm:text-lg font-black text-slate-900 block leading-tight">
+                      <span className="text-sm sm:text-base font-bold text-slate-700 block leading-tight">
+                        {formatCurrency(ev.suggestedPurchasePrice || (ev.basePriceGradeA - ev.gradeDiscount))}
+                      </span>
+                    </div>
+
+                    <div className="border-l border-slate-200 pl-2">
+                      <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">
+                        Sug. Venda
+                      </span>
+                      <span className="text-sm sm:text-base font-black text-slate-900 block leading-tight">
                         {formatCurrency(ev.suggestedSellingPrice || (ev.basePriceGradeA - ev.gradeDiscount + 500))}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     <button
                       onClick={() => setSelectedEvaluation(ev)}
-                      className="min-h-[44px] px-3 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+                      className="min-h-[44px] px-2.5 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5 text-emerald-400" />
                       <span>Recibo</span>
@@ -271,8 +280,9 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
                     <th className="p-4">Aparelho</th>
                     <th className="p-4">Grade & Alerta</th>
                     <th className="p-4">Peças Abatidas</th>
-                    <th className="p-4 text-right">Valor Compra</th>
-                    <th className="p-4 text-right">Sugerido Venda</th>
+                    <th className="p-4 text-right">Sug. Compra</th>
+                    <th className="p-4 text-right">Valor a Pagar</th>
+                    <th className="p-4 text-right">Sug. Venda</th>
                     <th className="p-4 text-center">Ações</th>
                   </tr>
                 </thead>
@@ -375,12 +385,20 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
                         )}
                       </td>
 
-                      {/* Valor Compra */}
+                      {/* Valor Sugerido Compra */}
+                      <td className="p-4 text-right whitespace-nowrap">
+                        <span className="text-sm font-bold text-slate-800 block">
+                          {formatCurrency(ev.suggestedPurchasePrice || (ev.basePriceGradeA - ev.gradeDiscount))}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block">Teto tabela</span>
+                      </td>
+
+                      {/* Valor a Pagar ao Cliente */}
                       <td className="p-4 text-right whitespace-nowrap">
                         <span className="text-base font-extrabold text-emerald-700 block">
                           {formatCurrency(ev.finalValue)}
                         </span>
-                        <span className="text-[10px] text-slate-400 block">A pagar</span>
+                        <span className="text-[10px] text-slate-400 block">Ao cliente</span>
                       </td>
 
                       {/* Valor Sugerido para Venda */}

@@ -65,6 +65,7 @@ model Evaluation {
   gradeDiscount       Float
   totalPartsDeduction Float
   finalValue          Float
+  suggestedPurchasePrice Float         @default(0)
   suggestedSellingPrice Float          @default(0)
   customerName        String?
   notes               String?

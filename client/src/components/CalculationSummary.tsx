@@ -164,20 +164,26 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
             </p>
           </div>
 
-          {/* Valor Sugerido para Venda */}
-          <div className="bg-slate-900 text-white rounded-xl p-3.5 border border-slate-800 flex items-center justify-between shadow-xs">
-            <div>
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
-                Valor Sugerido p/ Venda
+          {/* Cards Valores Sugeridos (Compra e Venda) */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-slate-100 text-slate-800 rounded-xl p-3 border border-slate-200">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                Sugerido Compra
               </span>
-              <span className="text-[11px] text-slate-400 block mt-0.5">
-                Margem de revenda (+R$ 500)
+              <span className="text-base font-black text-slate-900 block mt-0.5">
+                {formatCurrency(calculation.suggestedPurchasePrice || calculation.priceAfterGrade)}
               </span>
+              <span className="text-[10px] text-slate-400 block">Teto sem avarias</span>
             </div>
-            <div className="text-right">
-              <span className="text-xl font-black text-emerald-400">
+
+            <div className="bg-slate-900 text-white rounded-xl p-3 border border-slate-800">
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                Sugerido Venda
+              </span>
+              <span className="text-base font-black text-emerald-400 block mt-0.5">
                 {formatCurrency(calculation.suggestedSellingPrice || (calculation.priceAfterGrade + 500))}
               </span>
+              <span className="text-[10px] text-slate-400 block">Revenda (+R$ 500)</span>
             </div>
           </div>
 
@@ -381,20 +387,26 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
                 </p>
               </div>
 
-              {/* Card Destaque Valor Sugerido para Venda */}
-              <div className="bg-slate-900 text-white rounded-2xl p-3.5 border border-slate-800 flex items-center justify-between shadow-xs">
-                <div>
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
-                    Valor Sugerido para Venda
+              {/* Cards Valores Sugeridos no Drawer (Compra e Venda) */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-slate-100 text-slate-800 rounded-2xl p-3 border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Sugerido Compra
                   </span>
-                  <span className="text-[11px] text-slate-400 block mt-0.5">
-                    Revenda recomendada (+R$ 500,00)
+                  <span className="text-base font-black text-slate-900 block mt-0.5">
+                    {formatCurrency(calculation.suggestedPurchasePrice || calculation.priceAfterGrade)}
                   </span>
+                  <span className="text-[10px] text-slate-400 block">Teto de tabela</span>
                 </div>
-                <div className="text-right">
-                  <span className="text-xl font-black text-emerald-400">
+
+                <div className="bg-slate-900 text-white rounded-2xl p-3 border border-slate-800">
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                    Sugerido Venda
+                  </span>
+                  <span className="text-base font-black text-emerald-400 block mt-0.5">
                     {formatCurrency(calculation.suggestedSellingPrice || (calculation.priceAfterGrade + 500))}
                   </span>
+                  <span className="text-[10px] text-slate-400 block">Revenda (+R$ 500)</span>
                 </div>
               </div>
 

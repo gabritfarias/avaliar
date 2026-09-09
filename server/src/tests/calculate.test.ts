@@ -39,6 +39,7 @@ async function runTests() {
     assert(resA.effectiveGrade === 'A', 'Grade efetiva deve ser A');
     assert(resA.gradeDiscount === 0, 'Desconto Grade A deve ser 0');
     assert(resA.finalValue === var128.priceGradeA, `Valor final deve ser ${var128.priceGradeA}`);
+    assert(resA.suggestedPurchasePrice === var128.priceGradeA, `Valor sugerido de compra deve ser ${var128.priceGradeA}`);
     assert(resA.suggestedSellingPrice === var128.priceGradeA + 500, `Valor sugerido de venda deve ser ${var128.priceGradeA + 500}`);
 
     // Teste 2: Grade B sem peças
@@ -51,6 +52,7 @@ async function runTests() {
     assert(resB.effectiveGrade === 'B', 'Grade efetiva deve ser B');
     assert(resB.gradeDiscount === 100, 'Desconto padrão Grade B deve ser 100');
     assert(resB.finalValue === var128.priceGradeA - 100, `Valor final Grade B deve ser ${var128.priceGradeA - 100}`);
+    assert(resB.suggestedPurchasePrice === var128.priceGradeA - 100, `Valor sugerido de compra Grade B deve ser ${var128.priceGradeA - 100}`);
 
     // Teste 3: Grade C sem peças
     const resC = await calculateEvaluation({
@@ -90,6 +92,7 @@ async function runTests() {
     assert(resParts.parts.length === 2, 'Deve ter 2 peças abatidas');
     assert(resParts.totalPartsDeduction === expectedPartsCost, `Custo total das peças deve ser ${expectedPartsCost}`);
     assert(resParts.finalValue === var128.priceGradeA - expectedPartsCost, `Valor final deve ser ${var128.priceGradeA - expectedPartsCost}`);
+    assert(resParts.suggestedPurchasePrice === var128.priceGradeA, 'Valor sugerido de compra NÃO deve ser afetado pelo custo das peças');
     assert(resParts.suggestedSellingPrice === var128.priceGradeA + 500, 'Valor sugerido de venda NÃO deve ser afetado pelo desconto de peças');
 
     // Teste 6: Persistência no Banco de Dados

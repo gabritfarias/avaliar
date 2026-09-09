@@ -63,6 +63,7 @@ router.post('/', async (req: Request, res: Response) => {
         gradeDiscount: breakdown.gradeDiscount,
         totalPartsDeduction: breakdown.totalPartsDeduction,
         finalValue: breakdown.finalValue,
+        suggestedPurchasePrice: breakdown.suggestedPurchasePrice,
         suggestedSellingPrice: breakdown.suggestedSellingPrice,
         customerName: customerName ? String(customerName).trim() : null,
         notes: notes ? String(notes).trim() : null,

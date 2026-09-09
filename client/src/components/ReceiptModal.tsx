@@ -1,6 +1,6 @@
 import React from 'react';
 import { Evaluation } from '../types';
-import { X, Printer, CheckCircle, AlertTriangle, Smartphone, Calendar, User, FileText, TrendingUp } from 'lucide-react';
+import { X, Printer, CheckCircle, AlertTriangle, Smartphone, Calendar, User, FileText, TrendingUp, ShoppingBag } from 'lucide-react';
 
 interface ReceiptModalProps {
   evaluation: Evaluation | null;
@@ -164,30 +164,41 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ evaluation, onClose 
             </div>
           )}
 
-          {/* Valor Final a Pagar */}
-          <div className="bg-emerald-500 text-slate-950 p-4 rounded-xl flex items-center justify-between shadow-md">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-950/80">Valor de Compra Proposto</p>
-              <p className="text-xs text-emerald-950/70">A pagar pela loja ao cliente</p>
+          {/* Cards Valores Sugeridos (Compra e Venda de Referência) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {/* Valor Sugerido para Compra */}
+            <div className="bg-slate-100 text-slate-900 p-3.5 rounded-xl border border-slate-200">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <ShoppingBag className="w-3.5 h-3.5 text-slate-500" />
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Valor Sugerido p/ Compra</p>
+              </div>
+              <div className="text-xl font-black text-slate-800">
+                {formatCurrency(evaluation.suggestedPurchasePrice || (evaluation.basePriceGradeA - evaluation.gradeDiscount))}
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5">Teto da Grade {evaluation.grade} sem avarias</p>
             </div>
-            <div className="text-right">
-              <span className="text-2xl font-black">{formatCurrency(evaluation.finalValue)}</span>
+
+            {/* Valor Sugerido para Venda */}
+            <div className="bg-slate-900 text-white p-3.5 rounded-xl border border-slate-800">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Valor Sugerido p/ Venda</p>
+              </div>
+              <div className="text-xl font-black text-emerald-400">
+                {formatCurrency(evaluation.suggestedSellingPrice || (evaluation.basePriceGradeA - evaluation.gradeDiscount + 500))}
+              </div>
+              <p className="text-[10px] text-slate-400 mt-0.5">Revenda sugerida (+R$ 500)</p>
             </div>
           </div>
 
-          {/* Valor Sugerido para Venda */}
-          <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-4 rounded-xl flex items-center justify-between shadow-md border border-slate-700">
+          {/* Valor Final a Pagar ao Cliente */}
+          <div className="bg-emerald-500 text-slate-950 p-4 rounded-xl flex items-center justify-between shadow-md">
             <div>
-              <div className="flex items-center gap-1.5">
-                <TrendingUp className="w-4 h-4 text-emerald-400" />
-                <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">Valor Sugerido para Venda</p>
-              </div>
-              <p className="text-xs text-slate-400 mt-0.5">Preço sugerido no balcão (+R$ 500,00)</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-950/80">Valor de Compra Proposto</p>
+              <p className="text-xs text-emerald-950/70">A pagar pela loja ao cliente (com deduções)</p>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-black text-emerald-400">
-                {formatCurrency(evaluation.suggestedSellingPrice || (evaluation.basePriceGradeA - evaluation.gradeDiscount + 500))}
-              </span>
+              <span className="text-2xl font-black">{formatCurrency(evaluation.finalValue)}</span>
             </div>
           </div>
         </div>

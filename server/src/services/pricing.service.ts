@@ -30,6 +30,7 @@ export interface CalculationBreakdown {
   parts: PartDeduction[];
   totalPartsDeduction: number;
   finalValue: number;
+  suggestedPurchasePrice: number;
   suggestedSellingPrice: number;
 }
 
@@ -96,7 +97,10 @@ export async function calculateEvaluation(input: CalculationInput): Promise<Calc
   // 6. Fórmula Geral: valor_final = preço_grade_selecionada - soma(custos_das_peças_marcadas)
   const finalValue = Math.max(0, priceAfterGrade - totalPartsDeduction);
 
-  // 7. Valor Sugerido para Venda: valor base com grade acrescido de R$ 500,00 de margem (independente de peças)
+  // 7. Valor Sugerido para Compra: valor de referência de tabela do aparelho na grade (independente de peças)
+  const suggestedPurchasePrice = priceAfterGrade;
+
+  // 8. Valor Sugerido para Venda: valor base com grade acrescido de R$ 500,00 de margem (independente de peças)
   const suggestedSellingPrice = priceAfterGrade + 500;
 
   return {
@@ -116,6 +120,7 @@ export async function calculateEvaluation(input: CalculationInput): Promise<Calc
     parts: partsList,
     totalPartsDeduction,
     finalValue,
+    suggestedPurchasePrice,
     suggestedSellingPrice,
   };
 }
