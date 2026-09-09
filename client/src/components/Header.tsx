@@ -92,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, evaluat
       <nav
         aria-label="Navegação mobile"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-        className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-900/98 backdrop-blur-md border-t border-slate-800 shadow-2xl"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-20 bg-slate-900 backdrop-blur-md border-t border-slate-800 shadow-2xl"
       >
         <div className="grid grid-cols-3 h-14">
           <button

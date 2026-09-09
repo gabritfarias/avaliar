@@ -195,33 +195,37 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
 
       {/* ========================================================================= */}
       {/* 2. MOBILE VIEW: Sticky Bottom Bar (Fixo na parte inferior acima da Tab Bar)*/}
+      {/* A tab bar mede 3.5rem (56px) de área clicável + env(safe-area-inset-bottom) */}
+      {/* A barra de resumo é empilhada EXATAMENTE acima da tab bar expandida          */}
       {/* ========================================================================= */}
       <div
-        style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))' }}
-        className="lg:hidden fixed left-0 right-0 z-30 bg-slate-900/98 backdrop-blur-md text-white border-t border-slate-700/80 shadow-2xl px-4 py-3.5 sm:py-4"
+        style={{
+          bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
+        }}
+        className="lg:hidden fixed left-0 right-0 z-30 bg-slate-900 text-white border-t-2 border-emerald-600/40 shadow-2xl"
       >
-        <div className="max-w-md mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-md mx-auto flex items-stretch gap-0">
           {/* Informações do Valor e Toque para Expandir */}
           <div
             onClick={() => setIsDrawerOpen(true)}
-            className="flex-1 cursor-pointer select-none active:opacity-80 min-w-0"
+            className="flex-1 cursor-pointer select-none active:opacity-70 min-w-0 px-4 py-4"
           >
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 leading-snug">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
                 Pagar ao Cliente
               </span>
-              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-500/30 leading-none">
-                <ChevronUp className="w-3 h-3" /> Memória
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-600/40">
+                <ChevronUp className="w-3 h-3" /> Ver memória
               </span>
             </div>
 
-            <div className="text-xl sm:text-2xl font-black text-emerald-400 leading-snug tracking-tight my-0.5">
+            <div className="text-2xl font-black text-emerald-400 tracking-tight leading-tight">
               {formatCurrency(calculation.finalValue)}
             </div>
 
-            <div className="text-[11px] sm:text-xs font-medium text-slate-300 leading-snug whitespace-normal break-words mt-0.5">
+            <div className="text-xs text-slate-400 leading-tight mt-1 whitespace-normal break-words">
               {calculation.modelName} · Gr. {calculation.effectiveGrade}
-              {calculation.forcedGradeC ? ' (Peça trocada)' : ''}
+              {calculation.forcedGradeC ? ' · Peça trocada' : ''}
             </div>
           </div>
 
@@ -229,14 +233,16 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
           <button
             onClick={onSave}
             disabled={!canSave || isSaving || loading}
-            className="min-h-[48px] px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+            className="min-w-[88px] self-stretch px-5 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 active:scale-95 text-slate-950 font-black text-sm rounded-none flex flex-col items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
           >
             {isSaving ? (
-              <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircle2 className="w-5 h-5" />
             )}
-            <span>{isSaving ? 'Salvando...' : 'Salvar'}</span>
+            <span className="text-[11px] font-extrabold leading-tight">
+              {isSaving ? 'Salvando...' : 'Salvar'}
+            </span>
           </button>
         </div>
       </div>
