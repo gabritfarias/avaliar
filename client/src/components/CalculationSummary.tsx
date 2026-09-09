@@ -164,6 +164,23 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
             </p>
           </div>
 
+          {/* Valor Sugerido para Venda */}
+          <div className="bg-slate-900 text-white rounded-xl p-3.5 border border-slate-800 flex items-center justify-between shadow-xs">
+            <div>
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                Valor Sugerido p/ Venda
+              </span>
+              <span className="text-[11px] text-slate-400 block mt-0.5">
+                Margem de revenda (+R$ 500)
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="text-xl font-black text-emerald-400">
+                {formatCurrency(calculation.suggestedSellingPrice || (calculation.finalValue + 500))}
+              </span>
+            </div>
+          </div>
+
           {/* Warnings if forced C */}
           {calculation.forcedGradeC && (
             <div className="flex items-start gap-2 bg-amber-50 text-amber-800 p-2.5 rounded-lg text-xs border border-amber-200">
@@ -362,6 +379,23 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
                 <p className="text-[11px] text-emerald-700/80 mt-0.5">
                   Valor a ser pago ao cliente
                 </p>
+              </div>
+
+              {/* Card Destaque Valor Sugerido para Venda */}
+              <div className="bg-slate-900 text-white rounded-2xl p-3.5 border border-slate-800 flex items-center justify-between shadow-xs">
+                <div>
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                    Valor Sugerido para Venda
+                  </span>
+                  <span className="text-[11px] text-slate-400 block mt-0.5">
+                    Revenda recomendada (+R$ 500,00)
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xl font-black text-emerald-400">
+                    {formatCurrency(calculation.suggestedSellingPrice || (calculation.finalValue + 500))}
+                  </span>
+                </div>
               </div>
 
               {/* Alerta se peça trocada */}

@@ -30,6 +30,7 @@ export interface CalculationBreakdown {
   parts: PartDeduction[];
   totalPartsDeduction: number;
   finalValue: number;
+  suggestedSellingPrice: number;
 }
 
 export async function getGradeSettings() {
@@ -95,6 +96,9 @@ export async function calculateEvaluation(input: CalculationInput): Promise<Calc
   // 6. Fórmula Geral: valor_final = preço_grade_selecionada - soma(custos_das_peças_marcadas)
   const finalValue = Math.max(0, priceAfterGrade - totalPartsDeduction);
 
+  // 7. Valor Sugerido para Venda: valor final acrescido de R$ 500,00
+  const suggestedSellingPrice = finalValue + 500;
+
   return {
     variantId: variant.id,
     modelId: variant.modelId,
@@ -112,5 +116,6 @@ export async function calculateEvaluation(input: CalculationInput): Promise<Calc
     parts: partsList,
     totalPartsDeduction,
     finalValue,
+    suggestedSellingPrice,
   };
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Evaluation } from '../types';
-import { X, Printer, CheckCircle, AlertTriangle, Smartphone, Calendar, User, FileText } from 'lucide-react';
+import { X, Printer, CheckCircle, AlertTriangle, Smartphone, Calendar, User, FileText, TrendingUp } from 'lucide-react';
 
 interface ReceiptModalProps {
   evaluation: Evaluation | null;
@@ -172,6 +172,22 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ evaluation, onClose 
             </div>
             <div className="text-right">
               <span className="text-2xl font-black">{formatCurrency(evaluation.finalValue)}</span>
+            </div>
+          </div>
+
+          {/* Valor Sugerido para Venda */}
+          <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-4 rounded-xl flex items-center justify-between shadow-md border border-slate-700">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">Valor Sugerido para Venda</p>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">Preço sugerido no balcão (+R$ 500,00)</p>
+            </div>
+            <div className="text-right">
+              <span className="text-2xl font-black text-emerald-400">
+                {formatCurrency(evaluation.suggestedSellingPrice || (evaluation.finalValue + 500))}
+              </span>
             </div>
           </div>
         </div>

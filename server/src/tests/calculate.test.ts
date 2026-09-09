@@ -39,6 +39,7 @@ async function runTests() {
     assert(resA.effectiveGrade === 'A', 'Grade efetiva deve ser A');
     assert(resA.gradeDiscount === 0, 'Desconto Grade A deve ser 0');
     assert(resA.finalValue === var128.priceGradeA, `Valor final deve ser ${var128.priceGradeA}`);
+    assert(resA.suggestedSellingPrice === var128.priceGradeA + 500, `Valor sugerido de venda deve ser ${var128.priceGradeA + 500}`);
 
     // Teste 2: Grade B sem peças
     const resB = await calculateEvaluation({

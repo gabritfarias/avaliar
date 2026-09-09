@@ -47,6 +47,7 @@ export interface CalculationBreakdown {
   parts: Array<{ id: number; name: string; cost: number }>;
   totalPartsDeduction: number;
   finalValue: number;
+  suggestedSellingPrice: number;
 }
 
 export interface EvaluationPart {
@@ -69,6 +70,7 @@ export interface Evaluation {
   gradeDiscount: number;
   totalPartsDeduction: number;
   finalValue: number;
+  suggestedSellingPrice?: number | null;
   customerName?: string | null;
   notes?: string | null;
   createdAt: string;
