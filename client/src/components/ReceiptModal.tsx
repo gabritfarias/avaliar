@@ -96,7 +96,10 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ evaluation, onClose 
             {evaluation.hasReplacedPart && (
               <div className="mt-3 flex items-center space-x-2 text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 p-2.5 rounded-lg">
                 <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
-                <span>Possui aviso de peça trocada / não original (Forçado Grade C)</span>
+                <span>
+                  Aparelho possui peça substituída
+                  {evaluation.replacedComponents ? ` (${evaluation.replacedComponents})` : ''}
+                </span>
               </div>
             )}
           </div>

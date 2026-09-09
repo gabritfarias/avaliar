@@ -4,10 +4,10 @@ import { calculateEvaluation, CalculationInput } from '../services/pricing.servi
 
 const router = Router();
 
-// POST /api/evaluations/calculate - Memory of calculation in real time
+// POST /api/evaluations/calculate - Real-time calculation without saving
 router.post('/calculate', async (req: Request, res: Response) => {
   try {
-    const { variantId, grade, hasReplacedPart, partIds } = req.body;
+    const { variantId, grade, hasReplacedPart, replacedComponents, partIds } = req.body;
 
     if (!variantId) {
       return res.status(400).json({ error: 'ID da variante/capacidade é obrigatório.' });
@@ -21,6 +21,11 @@ router.post('/calculate', async (req: Request, res: Response) => {
       variantId: Number(variantId),
       grade,
       hasReplacedPart: Boolean(hasReplacedPart),
+      replacedComponents: Array.isArray(replacedComponents)
+        ? replacedComponents.map(String)
+        : typeof replacedComponents === 'string' && replacedComponents
+        ? [replacedComponents]
+        : [],
       partIds: Array.isArray(partIds) ? partIds.map(Number) : [],
     });
 
@@ -33,7 +38,7 @@ router.post('/calculate', async (req: Request, res: Response) => {
 // POST /api/evaluations - Save evaluation in database
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { variantId, grade, hasReplacedPart, partIds, customerName, notes } = req.body;
+    const { variantId, grade, hasReplacedPart, replacedComponents, partIds, customerName, notes } = req.body;
 
     if (!variantId) {
       return res.status(400).json({ error: 'ID da variante/capacidade é obrigatório.' });
@@ -48,8 +53,19 @@ router.post('/', async (req: Request, res: Response) => {
       variantId: Number(variantId),
       grade,
       hasReplacedPart: Boolean(hasReplacedPart),
+      replacedComponents: Array.isArray(replacedComponents)
+        ? replacedComponents.map(String)
+        : typeof replacedComponents === 'string' && replacedComponents
+        ? [replacedComponents]
+        : [],
       partIds: Array.isArray(partIds) ? partIds.map(Number) : [],
     });
+
+    const formattedReplacedComponents = Array.isArray(replacedComponents)
+      ? replacedComponents.filter(Boolean).join(', ')
+      : typeof replacedComponents === 'string' && replacedComponents.trim()
+      ? replacedComponents.trim()
+      : null;
 
     // Salva no banco de dados com snapshots de valores
     const evaluation = await prisma.evaluation.create({
@@ -59,6 +75,7 @@ router.post('/', async (req: Request, res: Response) => {
         capacityName: breakdown.capacity,
         grade: breakdown.effectiveGrade,
         hasReplacedPart: breakdown.hasReplacedPart,
+        replacedComponents: breakdown.hasReplacedPart ? formattedReplacedComponents : null,
         basePriceGradeA: breakdown.basePriceGradeA,
         gradeDiscount: breakdown.gradeDiscount,
         totalPartsDeduction: breakdown.totalPartsDeduction,

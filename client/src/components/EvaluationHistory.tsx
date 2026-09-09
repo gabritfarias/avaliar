@@ -184,8 +184,11 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
                     </span>
 
                     {ev.hasReplacedPart && (
-                      <span className="bg-red-50 text-red-700 border border-red-200 text-[9px] font-bold px-1.5 py-0.2 rounded flex items-center gap-0.5">
-                        <AlertTriangle className="w-2.5 h-2.5" /> Peça Trocada
+                      <span
+                        title={ev.replacedComponents ? `Substituída(s): ${ev.replacedComponents}` : 'Peça substituída'}
+                        className="bg-amber-50 text-amber-800 border border-amber-300 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5"
+                      >
+                        <AlertTriangle className="w-2.5 h-2.5" /> Peça Substituída{ev.replacedComponents ? ` (${ev.replacedComponents})` : ''}
                       </span>
                     )}
                   </div>
@@ -350,11 +353,11 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
 
                           {ev.hasReplacedPart && (
                             <span
-                              title="Aparelho possui mensagem de peça trocada"
-                              className="bg-red-50 text-red-700 border border-red-200 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1"
+                              title={ev.replacedComponents ? `Substituída(s): ${ev.replacedComponents}` : 'Aparelho possui peça substituída'}
+                              className="bg-amber-50 text-amber-800 border border-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1"
                             >
-                              <AlertTriangle className="w-3 h-3 text-red-600" />
-                              Peça Não Original
+                              <AlertTriangle className="w-3 h-3 text-amber-600" />
+                              Peça Substituída{ev.replacedComponents ? ` (${ev.replacedComponents})` : ''}
                             </span>
                           )}
                         </div>

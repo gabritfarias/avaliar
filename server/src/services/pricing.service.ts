@@ -4,6 +4,7 @@ export interface CalculationInput {
   variantId: number;
   grade: 'A' | 'B' | 'C';
   hasReplacedPart: boolean;
+  replacedComponents?: string[];
   partIds?: number[];
 }
 
@@ -22,6 +23,7 @@ export interface CalculationBreakdown {
   requestedGrade: 'A' | 'B' | 'C';
   effectiveGrade: 'A' | 'B' | 'C';
   hasReplacedPart: boolean;
+  replacedComponents?: string[];
   forcedGradeC: boolean;
   gradeDiscountBSetting: number;
   gradeDiscountCSetting: number;
@@ -60,9 +62,13 @@ export async function calculateEvaluation(input: CalculationInput): Promise<Calc
   // 2. Fetch Grade Settings
   const { discountB, discountC } = await getGradeSettings();
 
-  // 3. Regra de Negócio: Se tem peça trocada, força Grade C
-  const forcedGradeC = Boolean(hasReplacedPart);
-  const effectiveGrade: 'A' | 'B' | 'C' = forcedGradeC ? 'C' : input.grade;
+  // 3. Regra de Negócio: Peça substituída permite escolha manual entre Grade B ou C (não força Grade C)
+  // Caso venha com A e peça substituída, normaliza para B
+  let effectiveGrade: 'A' | 'B' | 'C' = input.grade;
+  if (hasReplacedPart && effectiveGrade === 'A') {
+    effectiveGrade = 'B';
+  }
+  const forcedGradeC = false;
 
   // 4. Determina o desconto da grade
   let gradeDiscount = 0;
@@ -112,6 +118,7 @@ export async function calculateEvaluation(input: CalculationInput): Promise<Calc
     requestedGrade: input.grade,
     effectiveGrade,
     hasReplacedPart,
+    replacedComponents: input.replacedComponents || [],
     forcedGradeC,
     gradeDiscountBSetting: discountB,
     gradeDiscountCSetting: discountC,

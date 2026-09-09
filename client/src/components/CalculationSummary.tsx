@@ -101,9 +101,9 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
                 <span className="text-slate-500 text-xs uppercase font-bold tracking-wider block">Passo 2</span>
                 <span className="text-slate-800 font-medium flex items-center gap-1.5">
                   Ajuste Grade {calculation.effectiveGrade}:
-                  {calculation.forcedGradeC && (
+                  {calculation.hasReplacedPart && (
                     <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded border border-amber-300">
-                      Peça Trocada
+                      Peça Substituída
                     </span>
                   )}
                 </span>
@@ -187,11 +187,11 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
             </div>
           </div>
 
-          {/* Warnings if forced C */}
-          {calculation.forcedGradeC && (
+          {/* Warnings if replaced part */}
+          {calculation.hasReplacedPart && (
             <div className="flex items-start gap-2 bg-amber-50 text-amber-800 p-2.5 rounded-lg text-xs border border-amber-200">
               <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
-              <span>Grade C aplicada automaticamente porque o aparelho possui mensagem de peça trocada.</span>
+              <span>Aparelho possui peça substituída (Grade {calculation.effectiveGrade} selecionada).</span>
             </div>
           )}
 
@@ -248,7 +248,7 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
 
             <div className="text-xs text-slate-400 leading-tight mt-1 whitespace-normal break-words">
               {calculation.modelName} · Gr. {calculation.effectiveGrade}
-              {calculation.forcedGradeC ? ' · Peça trocada' : ''}
+              {calculation.hasReplacedPart ? ' · Peça substituída' : ''}
             </div>
           </div>
 
@@ -325,9 +325,9 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
                     <span className="text-[10px] font-bold text-slate-400 uppercase">Passo 2</span>
                     <p className="font-medium text-slate-800 flex items-center gap-1">
                       Ajuste Grade {calculation.effectiveGrade}
-                      {calculation.forcedGradeC && (
+                      {calculation.hasReplacedPart && (
                         <span className="bg-amber-100 text-amber-900 text-[10px] font-bold px-1.5 py-0.2 rounded">
-                          Peça Trocada
+                          Peça Substituída
                         </span>
                       )}
                     </p>
@@ -410,11 +410,11 @@ export const CalculationSummary: React.FC<CalculationSummaryProps> = ({
                 </div>
               </div>
 
-              {/* Alerta se peça trocada */}
-              {calculation.forcedGradeC && (
+              {/* Alerta se peça substituída */}
+              {calculation.hasReplacedPart && (
                 <div className="flex items-start gap-2 bg-amber-50 text-amber-900 p-3 rounded-xl text-xs border border-amber-200">
                   <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
-                  <span>Grade C forçada devido a mensagem de peça não original no aparelho.</span>
+                  <span>Aparelho possui peça substituída (Grade {calculation.effectiveGrade} selecionada).</span>
                 </div>
               )}
 

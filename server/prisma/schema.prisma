@@ -61,6 +61,7 @@ model Evaluation {
   capacityName        String?
   grade               String
   hasReplacedPart     Boolean          @default(false)
+  replacedComponents  String?
   basePriceGradeA     Float
   gradeDiscount       Float
   totalPartsDeduction Float

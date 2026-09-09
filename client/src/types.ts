@@ -39,7 +39,8 @@ export interface CalculationBreakdown {
   requestedGrade: 'A' | 'B' | 'C';
   effectiveGrade: 'A' | 'B' | 'C';
   hasReplacedPart: boolean;
-  forcedGradeC: boolean;
+  replacedComponents?: string[];
+  forcedGradeC?: boolean;
   gradeDiscountBSetting: number;
   gradeDiscountCSetting: number;
   gradeDiscount: number;
@@ -67,6 +68,7 @@ export interface Evaluation {
   capacityName?: string | null;
   grade: 'A' | 'B' | 'C';
   hasReplacedPart: boolean;
+  replacedComponents?: string | null;
   basePriceGradeA: number;
   gradeDiscount: number;
   totalPartsDeduction: number;

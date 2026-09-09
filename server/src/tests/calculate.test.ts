@@ -65,17 +65,28 @@ async function runTests() {
     assert(resC.gradeDiscount === 200, 'Desconto padrão Grade C deve ser 200');
     assert(resC.finalValue === var128.priceGradeA - 200, `Valor final Grade C deve ser ${var128.priceGradeA - 200}`);
 
-    // Teste 4: Flag de Peça Trocada força Grade C
-    const resForcedC = await calculateEvaluation({
+    // Teste 4: Peça Substituída permite escolha manual entre Grade B e C (não força mais Grade C)
+    const resReplacedB = await calculateEvaluation({
       variantId: var128.id,
-      grade: 'A', // Selecionou A, mas tem mensagem de peça trocada!
+      grade: 'B',
       hasReplacedPart: true,
+      replacedComponents: ['Bateria'],
       partIds: [],
     });
-    assert(resForcedC.effectiveGrade === 'C', 'Aparelho com mensagem de peça trocada DEVE ter Grade C');
-    assert(resForcedC.forcedGradeC === true, 'forcedGradeC deve ser true');
-    assert(resForcedC.gradeDiscount === 200, 'Desconto aplicado deve ser da Grade C (200)');
-    assert(resForcedC.finalValue === var128.priceGradeA - 200, 'Valor final deve refletir Grade C');
+    assert(resReplacedB.effectiveGrade === 'B', 'Peça substituída com escolha B deve manter Grade B');
+    assert(resReplacedB.gradeDiscount === 100, 'Desconto aplicado deve ser da Grade B (100)');
+    assert(resReplacedB.finalValue === var128.priceGradeA - 100, 'Valor final deve refletir Grade B');
+
+    const resReplacedC = await calculateEvaluation({
+      variantId: var128.id,
+      grade: 'C',
+      hasReplacedPart: true,
+      replacedComponents: ['Tela', 'Câmera'],
+      partIds: [],
+    });
+    assert(resReplacedC.effectiveGrade === 'C', 'Peça substituída com escolha C deve manter Grade C');
+    assert(resReplacedC.gradeDiscount === 200, 'Desconto aplicado deve ser da Grade C (200)');
+    assert(resReplacedC.finalValue === var128.priceGradeA - 200, 'Valor final deve refletir Grade C');
 
     // Teste 5: Abatimento de Múltiplas Peças
     const bateria = iphone12.parts.find((p) => p.name === 'Bateria');
