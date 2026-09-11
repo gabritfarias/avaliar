@@ -110,6 +110,33 @@ export interface Evaluation {
   suggestedSellingPrice?: number | null;
   customerName?: string | null;
   notes?: string | null;
+  // Trade-in (Orçamento e Fechamento com Troca)
+  targetDeviceName?: string | null;
+  targetDeviceValue?: number | null;
+  tradeInDifference?: number | null;
+  paymentMethod?: string | null;
+  paymentMethodLabel?: string | null;
+  installments?: number | null;
+  paymentFeeRate?: number | null;
+  paymentFeeAmount?: number | null;
+  finalTradeInValue?: number | null;
+  installmentValue?: number | null;
   createdAt: string;
   parts: EvaluationPart[];
+}
+
+export type PaymentTableType = 'PIX' | 'DEBIT' | 'CREDIT_CELL' | 'CREDIT_BANESE';
+
+export interface TradeInDetails {
+  targetDeviceName: string;
+  targetDeviceValue: number;
+  tradeInDifference: number; // targetDeviceValue - evaluationFinalValue
+  paymentMethod: PaymentTableType;
+  paymentMethodLabel: string;
+  installments: number;
+  paymentFeeRate: number; // e.g. 0.12 para 12%
+  paymentFeeAmount: number; // tradeInDifference * paymentFeeRate
+  finalTradeInValue: number; // tradeInDifference + paymentFeeAmount
+  installmentValue: number; // finalTradeInValue / installments
+  isMulvSpecial?: boolean;
 }

@@ -48,7 +48,7 @@ router.post('/calculate', async (req: AuthenticatedRequest, res: Response) => {
 // POST /api/evaluations - Save evaluation in database vinculada ao storeId da sessão
 router.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { variantId, grade, hasReplacedPart, replacedComponents, replacedDetails, partIds, customerName, notes } = req.body;
+    const { variantId, grade, hasReplacedPart, replacedComponents, replacedDetails, partIds, customerName, notes, tradeIn } = req.body;
 
     if (!variantId) {
       return res.status(400).json({ error: 'ID da variante/capacidade é obrigatório.' });
@@ -109,6 +109,17 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
         suggestedSellingPrice: breakdown.suggestedSellingPrice,
         customerName: customerName ? String(customerName).trim() : null,
         notes: notes ? String(notes).trim() : null,
+        // Dados de Trade-in / Orçamento
+        targetDeviceName: tradeIn?.targetDeviceName ? String(tradeIn.targetDeviceName).trim() : null,
+        targetDeviceValue: tradeIn?.targetDeviceValue != null ? Number(tradeIn.targetDeviceValue) : null,
+        tradeInDifference: tradeIn?.tradeInDifference != null ? Number(tradeIn.tradeInDifference) : null,
+        paymentMethod: tradeIn?.paymentMethod ? String(tradeIn.paymentMethod).trim() : null,
+        paymentMethodLabel: tradeIn?.paymentMethodLabel ? String(tradeIn.paymentMethodLabel).trim() : null,
+        installments: tradeIn?.installments != null ? Number(tradeIn.installments) : null,
+        paymentFeeRate: tradeIn?.paymentFeeRate != null ? Number(tradeIn.paymentFeeRate) : null,
+        paymentFeeAmount: tradeIn?.paymentFeeAmount != null ? Number(tradeIn.paymentFeeAmount) : null,
+        finalTradeInValue: tradeIn?.finalTradeInValue != null ? Number(tradeIn.finalTradeInValue) : null,
+        installmentValue: tradeIn?.installmentValue != null ? Number(tradeIn.installmentValue) : null,
         parts: {
           create: breakdown.parts.map((p) => ({
             partId: p.id,

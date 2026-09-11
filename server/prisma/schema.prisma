@@ -75,6 +75,17 @@ model Evaluation {
   suggestedSellingPrice    Float            @default(0)
   customerName             String?
   notes                    String?
+  // Trade-in (Orçamento e Fechamento com Troca)
+  targetDeviceName         String?
+  targetDeviceValue        Float?
+  tradeInDifference        Float?
+  paymentMethod            String?
+  paymentMethodLabel       String?
+  installments             Int?
+  paymentFeeRate           Float?
+  paymentFeeAmount         Float?
+  finalTradeInValue        Float?
+  installmentValue         Float?
   createdAt                DateTime         @default(now())
   parts                    EvaluationPart[]
 }

@@ -7,6 +7,7 @@ import {
   Part,
   User,
   StoreSummary,
+  TradeInDetails,
 } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || 'http://localhost:3001';
@@ -294,6 +295,7 @@ export async function saveEvaluation(data: {
   partIds: number[];
   customerName?: string;
   notes?: string;
+  tradeIn?: TradeInDetails;
 }): Promise<{ message: string; evaluation: Evaluation; breakdown: CalculationBreakdown }> {
   const res = await fetch(`${API_BASE}/evaluations`, {
     method: 'POST',

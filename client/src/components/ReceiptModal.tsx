@@ -216,12 +216,74 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ evaluation, onClose 
           <div className="bg-emerald-500 text-slate-950 p-4 rounded-xl flex items-center justify-between shadow-md">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-950/80">Valor de Compra Proposto</p>
-              <p className="text-xs text-emerald-950/70">A pagar pela loja ao cliente (com deduções)</p>
+              <p className="text-xs text-emerald-950/70">Aparelho avaliado (abatimento na troca)</p>
             </div>
             <div className="text-right">
               <span className="text-2xl font-black">{formatCurrency(evaluation.finalValue)}</span>
             </div>
           </div>
+
+          {/* Seção de Trade-in / Fechamento de Negócio se houver */}
+          {evaluation.targetDeviceName && (
+            <div className="bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-900 text-white rounded-xl p-4 border border-slate-700 shadow-md space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-700/80 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                    Fechamento de Negócio (Trade-in)
+                  </span>
+                </div>
+                <span className="text-xs text-slate-300 font-medium bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                  {evaluation.paymentMethodLabel || evaluation.paymentMethod}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-slate-400 block">Aparelho Desejado:</span>
+                  <span className="font-bold text-white text-sm block truncate">
+                    {evaluation.targetDeviceName}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-slate-400 block">Preço de Venda:</span>
+                  <span className="font-bold text-white text-sm block">
+                    {formatCurrency(evaluation.targetDeviceValue || 0)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-700/80 space-y-1 text-xs">
+                <div className="flex justify-between text-slate-300">
+                  <span>(-) Aparelho do Cliente (Entrada):</span>
+                  <span className="font-semibold text-emerald-400">
+                    - {formatCurrency(evaluation.finalValue)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>Diferença Bruta (Volta):</span>
+                  <span>{formatCurrency(evaluation.tradeInDifference || 0)}</span>
+                </div>
+                {(evaluation.paymentFeeAmount || 0) > 0 && (
+                  <div className="flex justify-between text-amber-300">
+                    <span>Taxa da Forma de Pagamento ({((evaluation.paymentFeeRate || 0) * 100).toFixed(0)}%):</span>
+                    <span>+ {formatCurrency(evaluation.paymentFeeAmount || 0)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2 border-t border-slate-700 text-sm font-bold">
+                  <span className="text-white">Total Final a Pagar:</span>
+                  <span className="text-base text-emerald-400 font-black">
+                    {formatCurrency(evaluation.finalTradeInValue || (evaluation.tradeInDifference || 0))}
+                  </span>
+                </div>
+                {(evaluation.installments || 1) > 1 && (
+                  <div className="text-right text-xs text-emerald-300 font-bold">
+                    Condição: {evaluation.installments}x de {formatCurrency(evaluation.installmentValue || 0)}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer Actions */}

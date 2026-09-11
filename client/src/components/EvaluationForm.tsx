@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Model, Variant, CalculationBreakdown, GradeSettings, Evaluation, ReplacedComponentDetail } from '../types';
+import { Model, Variant, CalculationBreakdown, GradeSettings, Evaluation, ReplacedComponentDetail, TradeInDetails } from '../types';
 import { calculateEvaluation, saveEvaluation } from '../services/api';
 import { CalculationSummary } from './CalculationSummary';
 import { ReceiptModal } from './ReceiptModal';
+import { TradeInModal } from './TradeInModal';
 import {
   Smartphone,
   HardDrive,
@@ -52,6 +53,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [savedEvaluation, setSavedEvaluation] = useState<Evaluation | null>(null);
+  const [isTradeInModalOpen, setIsTradeInModalOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Model search / filter
@@ -215,8 +217,14 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
     };
   }, [selectedVariantId, grade, hasReplacedPart, replacedDetails, selectedPartIds]);
 
-  // Save evaluation to database
-  const handleSaveEvaluation = async () => {
+  // Abre o modal de Orçamento e Fechamento (Trade-in) antes de gravar
+  const handleOpenTradeInModal = () => {
+    if (!selectedVariantId || !calculation) return;
+    setIsTradeInModalOpen(true);
+  };
+
+  // Grava efetivamente a avaliação e o orçamento de Trade-in no banco
+  const handleExecuteSave = async (tradeIn?: TradeInDetails) => {
     if (!selectedVariantId) return;
 
     try {
@@ -229,10 +237,16 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
         partIds: selectedPartIds,
         customerName: customerName.trim() || undefined,
         notes: notes.trim() || undefined,
+        tradeIn,
       });
 
+      setIsTradeInModalOpen(false);
       setSavedEvaluation(res.evaluation);
-      setToastMessage('Avaliação gravada com sucesso no banco de dados!');
+      setToastMessage(
+        tradeIn
+          ? 'Negócio de troca (Trade-in) e avaliação gravados com sucesso!'
+          : 'Avaliação gravada com sucesso no banco de dados!'
+      );
       onEvaluationSaved();
 
       // Clear customer form fields
@@ -276,6 +290,18 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
 
       {/* Recibo Modal pós-gravação */}
       <ReceiptModal evaluation={savedEvaluation} onClose={() => setSavedEvaluation(null)} />
+
+      {/* Modal de Orçamento e Fechamento (Trade-in) */}
+      <TradeInModal
+        isOpen={isTradeInModalOpen}
+        onClose={() => setIsTradeInModalOpen(false)}
+        calculation={calculation}
+        customerName={customerName}
+        models={models}
+        onConfirmTradeIn={(tradeIn) => handleExecuteSave(tradeIn)}
+        onSaveWithoutTradeIn={() => handleExecuteSave(undefined)}
+        isSaving={isSaving}
+      />
 
       {/* Main Grid Layout: Form on Left, Sticky Summary on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
@@ -829,7 +855,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({
           <CalculationSummary
             calculation={calculation}
             loading={isCalculating}
-            onSave={handleSaveEvaluation}
+            onSave={handleOpenTradeInModal}
             isSaving={isSaving}
             canSave={Boolean(selectedVariantId && calculation)}
           />

@@ -285,6 +285,35 @@ export const EvaluationHistory: React.FC<EvaluationHistoryProps> = ({
                   </div>
                 )}
 
+                {/* Destaque de Trade-in / Fechamento de Troca se houver */}
+                {ev.targetDeviceName && (
+                  <div className="bg-slate-900 text-white rounded-xl p-2.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 border border-slate-800">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="bg-emerald-500/20 text-emerald-400 font-bold px-1.5 py-0.5 rounded text-[10px] border border-emerald-500/30">
+                        🔄 Trade-in
+                      </span>
+                      <span className="font-bold text-white">
+                        {ev.targetDeviceName}
+                      </span>
+                      <span className="text-slate-400 text-[11px]">
+                        ({formatCurrency(ev.targetDeviceValue || 0)})
+                      </span>
+                    </div>
+
+                    <div className="text-right sm:shrink-0 flex items-center justify-between sm:justify-end gap-2">
+                      <span className="text-slate-400 text-[11px]">Volta Final:</span>
+                      <span className="font-black text-emerald-400 text-xs">
+                        {formatCurrency(ev.finalTradeInValue || (ev.tradeInDifference || 0))}
+                      </span>
+                      {(ev.installments || 1) > 1 && (
+                        <span className="bg-slate-800 text-slate-200 px-1.5 py-0.5 rounded text-[10px] font-mono border border-slate-700">
+                          {ev.installments}x de {formatCurrency(ev.installmentValue || 0)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Valor Final, Valor Sugerido & Botões Táteis */}
                 <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
