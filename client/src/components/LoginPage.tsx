@@ -107,7 +107,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                   spellCheck={false}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="ex: administrador ou phonemix_centro"
                   className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition"
                 />
               </div>
