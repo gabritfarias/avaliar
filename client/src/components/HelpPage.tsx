@@ -18,12 +18,15 @@ import {
   DollarSign,
   Trash2,
   PlusCircle,
+  CreditCard,
+  Banknote,
+  RefreshCw,
 } from 'lucide-react';
 
 interface HelpTopic {
   id: string;
   title: string;
-  category: 'avaliacao' | 'catalogo' | 'precos' | 'historico';
+  category: 'avaliacao' | 'catalogo' | 'precos' | 'historico' | 'fechamento';
   categoryLabel: string;
   icon: React.ReactNode;
   summary: string;
@@ -37,6 +40,7 @@ export const HelpPage: React.FC = () => {
     'como-avaliar',
     'pecas-substituidas',
     'precos-sugeridos',
+    'orcamento-tradein',
     'gestao-catalogo',
     'historico-atendimentos',
   ]);
@@ -274,8 +278,193 @@ export const HelpPage: React.FC = () => {
       ),
     },
     {
+      id: 'orcamento-tradein',
+      title: '4. Orçamento, Troca (Trade-in) e Formas de Pagamento',
+      category: 'fechamento',
+      categoryLabel: 'Orçamento & Fechamento',
+      icon: <CreditCard className="w-5 h-5 text-emerald-600" />,
+      summary: 'Como simular a troca no balcão, abater o usado do cliente, calcular a volta e aplicar taxas de maquininha (Débito, Tabela Celular e Banese).',
+      content: (
+        <div className="space-y-4 text-sm text-slate-700 leading-relaxed">
+          <p>
+            O fluxo de fechamento foi desenvolvido para agilizar a negociação no balcão quando o cliente entrega o iPhone usado como entrada na compra de um novo aparelho.
+          </p>
+
+          {/* Como funciona o botão Salvar */}
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
+              <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center font-black shrink-0">
+                1
+              </span>
+              <span>Como Funciona o Botão "Concluir e Salvar Avaliação"</span>
+            </div>
+            <p className="text-xs text-slate-600 pl-8 leading-relaxed">
+              Ao terminar a checagem do aparelho do cliente e clicar em <strong>"Concluir e Salvar Avaliação"</strong>, o sistema <strong>não salva de imediato</strong>. Ele abre automaticamente a tela de <strong>Orçamento e Fechamento (Trade-in)</strong> para que você possa montar a proposta de troca com o cliente em tempo real, calculando a diferença a pagar e as opções de parcelamento.
+            </p>
+          </div>
+
+          {/* Aparelho Desejado e Cálculo da Volta */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider">
+                <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[10px] flex items-center justify-center font-bold shrink-0">
+                  2
+                </span>
+                Aparelho Desejado pelo Cliente
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                No campo superior, informe o modelo que o cliente deseja levar (ex: <em>iPhone 14 Pro Max 128GB</em>) e o <strong>Valor de Venda da Loja</strong> (ex: <em>R$ 3.500,00</em>). Você pode digitar ou selecionar uma das sugestões do catálogo da loja.
+              </p>
+            </div>
+
+            <div className="bg-emerald-50/80 p-3.5 rounded-xl border border-emerald-300 space-y-2">
+              <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs uppercase tracking-wider">
+                <RefreshCw className="w-4 h-4 text-emerald-600 shrink-0" />
+                O Cálculo da Diferença (A "Volta")
+              </div>
+              <p className="text-xs text-emerald-900 leading-relaxed">
+                O sistema recupera automaticamente o <strong>Valor Final de Compra do usado</strong> (ex: <em>R$ 1.200,00</em>) e abate do valor do novo aparelho:
+              </p>
+              <div className="bg-white p-2.5 rounded-lg border border-emerald-200 text-xs text-emerald-950 font-semibold space-y-1">
+                <div className="flex justify-between">
+                  <span>Novo iPhone (Desejado):</span>
+                  <span>R$ 3.500,00</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>(−) Usado do Cliente (Entrada):</span>
+                  <span className="text-emerald-700">− R$ 1.200,00</span>
+                </div>
+                <div className="flex justify-between text-emerald-800 font-bold border-t border-emerald-100 pt-1">
+                  <span>(=) Diferença Líquida (Volta à Vista):</span>
+                  <span>R$ 2.300,00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Formas de Pagamento e Taxas */}
+          <div className="space-y-2.5">
+            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <Banknote className="w-4 h-4 text-emerald-600" />
+              Formas de Pagamento e Taxas da Maquininha
+            </h4>
+            <p className="text-xs text-slate-600">
+              Escolha como o cliente pagará o saldo da volta. O sistema recalcula instantaneamente os custos das taxas e os valores de cada parcela:
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Dinheiro / Pix */}
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <Banknote className="w-4 h-4 text-emerald-600" />
+                    Dinheiro / Pix
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                    0% de Taxa
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Para pagamentos à vista via Pix ou dinheiro em espécie, não há nenhum desconto ou acréscimo. O cliente paga exatamente a diferença líquida calculada (ex: R$ 2.300,00).
+                </p>
+              </div>
+
+              {/* Débito */}
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <CreditCard className="w-4 h-4 text-blue-600" />
+                    Cartão de Débito
+                  </span>
+                  <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+                    +4% Automático
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Aplica o acréscimo padrão de <strong>4%</strong> sobre a volta para cobrir os custos da operadora da maquininha no débito (ex: volta de R$ 2.300,00 vira R$ 2.392,00).
+                </p>
+              </div>
+
+              {/* Tabela Celular */}
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <Smartphone className="w-4 h-4 text-purple-600" />
+                    Crédito: Tabela Celular
+                  </span>
+                  <span className="text-[10px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                    De 1x até 21x
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Tabela padrão de parcelamento para cartões de crédito convencionais (Mastercard, Visa, Elo, etc.):
+                </p>
+                <div className="p-2 bg-white rounded-lg border border-slate-200 text-[11px] text-slate-700 space-y-0.5">
+                  <div className="flex justify-between"><span>1x: <strong>6%</strong></span><span>2x a 4x: <strong>10%</strong></span></div>
+                  <div className="flex justify-between"><span>5x a 10x: <strong>12%</strong></span><span>11x a 12x: <strong>15%</strong></span></div>
+                  <div className="flex justify-between"><span>13x a 18x: <strong>20%</strong></span><span>19x a 21x: <strong>22%</strong></span></div>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Ao clicar na parcela desejada, o sistema exibe imediatamente o <strong>valor exato de cada mês</strong> e o <strong>total corrigido</strong>.
+                </p>
+              </div>
+
+              {/* Tabela Banese */}
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <CreditCard className="w-4 h-4 text-amber-600" />
+                    Crédito: Tabela Banese Card
+                  </span>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                    De 1x até 12x
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Tabela específica para o cartão regional Banese Card:
+                </p>
+                <div className="p-2 bg-white rounded-lg border border-slate-200 text-[11px] text-slate-700 space-y-0.5">
+                  <div className="flex justify-between"><span>1x a 6x: <strong>15%</strong></span><span>7x a 10x: <strong>15%</strong> (ou <strong>18% Mulv</strong>)</span></div>
+                  <div className="flex justify-between"><span>11x a 12x: <strong>18%</strong> (ou <strong>20% Mulv</strong>)</span></div>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  A partir de 7 parcelas, você pode ativar com 1 clique a opção <strong>"Mulv"</strong> caso a transação exija a taxa diferenciada da operadora.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Conclusão, Salvar com Troca e Venda Avulsa */}
+          <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-2.5">
+            <div className="flex items-center gap-2 font-bold text-emerald-400 text-sm">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Conclusão e Registro Seguro no Histórico</span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              O atendimento <strong>só é gravado no sistema após você revisar todos os números e clicar no botão "Confirmar e Salvar Troca"</strong>. Todas as informações comerciais ficam vinculadas ao histórico do atendimento para emissão do comprovante detalhado.
+            </p>
+            <div className="pt-2 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-slate-400">
+              <span className="text-slate-300 font-semibold">
+                O cliente não vai levar outro aparelho (apenas venda avulsa do usado)?
+              </span>
+              <span className="text-emerald-300 text-[11px] bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">
+                Basta clicar em <u>"Salvar apenas compra do usado (sem troca)"</u>
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-950 flex items-start gap-2">
+            <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+            <span>
+              <strong>Dica Comercial:</strong> Ao negociar no balcão, você pode testar diferentes parcelamentos (ex: comparar 10x vs 12x) na frente do cliente para encontrar a parcela que cabe no bolso dele sem comprometer a margem da loja!
+            </span>
+          </div>
+        </div>
+      ),
+    },
+    {
       id: 'gestao-catalogo',
-      title: '4. Gestão de Modelos e Peças de Reposição',
+      title: '5. Gestão de Modelos e Peças de Reposição',
       category: 'catalogo',
       categoryLabel: 'Catálogo & Modelos',
       icon: <Layers className="w-5 h-5 text-indigo-600" />,
@@ -322,7 +511,7 @@ export const HelpPage: React.FC = () => {
     },
     {
       id: 'historico-atendimentos',
-      title: '5. Histórico de Atendimentos e Segurança das Vendas',
+      title: '6. Histórico de Atendimentos e Segurança das Vendas',
       category: 'historico',
       categoryLabel: 'Histórico & Comprovante',
       icon: <History className="w-5 h-5 text-purple-600" />,
@@ -421,6 +610,7 @@ export const HelpPage: React.FC = () => {
           {[
             { id: 'all', label: 'Todos os Assuntos' },
             { id: 'avaliacao', label: 'Avaliação & Peças' },
+            { id: 'fechamento', label: 'Orçamento & Troca' },
             { id: 'precos', label: 'Preços & Lucro' },
             { id: 'catalogo', label: 'Catálogo de Aparelhos' },
             { id: 'historico', label: 'Histórico de Atendimentos' },
