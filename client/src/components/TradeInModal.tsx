@@ -3,18 +3,12 @@ import { CalculationBreakdown, Model, PaymentTableType, TradeInDetails } from '.
 import {
   X,
   Smartphone,
-  ArrowRight,
   CreditCard,
   Banknote,
-  Percent,
   CheckCircle2,
   RefreshCw,
   Sparkles,
   ShoppingBag,
-  HelpCircle,
-  TrendingDown,
-  ArrowDownRight,
-  ShieldCheck,
 } from 'lucide-react';
 
 interface TradeInModalProps {
@@ -22,7 +16,7 @@ interface TradeInModalProps {
   onClose: () => void;
   calculation: CalculationBreakdown | null;
   customerName?: string;
-  models: Model[];
+  models?: Model[];
   onConfirmTradeIn: (tradeIn: TradeInDetails) => void;
   onSaveWithoutTradeIn: () => void;
   isSaving: boolean;
@@ -33,44 +27,48 @@ export const TradeInModal: React.FC<TradeInModalProps> = ({
   onClose,
   calculation,
   customerName,
-  models,
+  models = [],
   onConfirmTradeIn,
   onSaveWithoutTradeIn,
   isSaving,
 }) => {
-  // Inputs do Aparelho Desejado
+  // 1. TODOS OS HOOKS DECLARADOS NO TOPO (Regra inegociável do React para evitar tela branca)
   const [targetDeviceName, setTargetDeviceName] = useState<string>('');
   const [targetDeviceValueStr, setTargetDeviceValueStr] = useState<string>('');
-  
-  // Forma de pagamento selecionada
   const [paymentMethod, setPaymentMethod] = useState<PaymentTableType>('CREDIT_CELL');
-  
-  // Parcelamento
   const [cellInstallments, setCellInstallments] = useState<number>(10);
   const [baneseInstallments, setBaneseInstallments] = useState<number>(10);
   const [isBaneseMulv, setIsBaneseMulv] = useState<boolean>(false);
-
-  // Erro de validação
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  if (!isOpen || !calculation) return null;
-
-  const clientDeviceValue = calculation.finalValue;
-
-  const formatCurrency = (val: number) => {
-    return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
-
-  // Sugestões de aparelhos do catálogo
+  // Sugestões de aparelhos do catálogo (useMemo executado incondicionalmente no topo)
   const modelSuggestions = useMemo(() => {
+    if (!Array.isArray(models)) return [];
     const list: string[] = [];
     models.forEach((m) => {
-      m.variants.forEach((v) => {
-        list.push(`${m.name} ${v.capacity}`);
-      });
+      if (m && Array.isArray(m.variants)) {
+        m.variants.forEach((v) => {
+          if (v && v.capacity) {
+            list.push(`${m.name} ${v.capacity}`);
+          }
+        });
+      }
     });
     return list;
   }, [models]);
+
+  // 2. RETORNO ANTECIPADO SOMENTE APÓS TODOS OS HOOKS
+  if (!isOpen || !calculation) {
+    return null;
+  }
+
+  // Funções de formatação e cálculo seguras contra null/undefined/NaN
+  const formatCurrency = (val?: number | null) => {
+    const num = typeof val === 'number' && !isNaN(val) ? val : 0;
+    return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  const clientDeviceValue = typeof calculation.finalValue === 'number' ? calculation.finalValue : 0;
 
   // Taxas da Tabela Celular
   const getCellRate = (installments: number): number => {
@@ -95,11 +93,11 @@ export const TradeInModal: React.FC<TradeInModalProps> = ({
     return 0.15;
   };
 
-  // Cálculo dos valores financeiros do Trade-in
-  const parsedTargetValue = parseFloat(targetDeviceValueStr.replace(/\./g, '').replace(',', '.')) || 0;
+  // Cálculo dos valores financeiros da volta
+  const parsedTargetValue = parseFloat((targetDeviceValueStr || '').replace(/\./g, '').replace(',', '.')) || 0;
   const difference = Math.max(0, parsedTargetValue - clientDeviceValue);
 
-  // Determinar taxa e parcelas atuais
+  // Determinar taxa e parcelas atuais com base na opção selecionada
   let feeRate = 0;
   let activeInstallments = 1;
   let paymentLabel = 'Dinheiro / Pix';
@@ -187,6 +185,7 @@ export const TradeInModal: React.FC<TradeInModalProps> = ({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             disabled={isSaving}
             className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer disabled:opacity-50"
@@ -219,12 +218,12 @@ export const TradeInModal: React.FC<TradeInModalProps> = ({
                     ? 'bg-blue-500/10 border-blue-500/30 text-blue-400'
                     : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
                 }`}>
-                  Grade {calculation.effectiveGrade}
+                  Grade {calculation.effectiveGrade || 'A'}
                 </span>
               </div>
               <div>
                 <p className="text-sm font-bold text-white truncate">
-                  {calculation.modelName} {calculation.capacity}
+                  {calculation.modelName || 'Aparelho'} {calculation.capacity || ''}
                 </p>
                 {customerName && (
                   <p className="text-xs text-slate-400 truncate">Cliente: {customerName}</p>
